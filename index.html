@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WANTEDLE — Guess the FBI Most Wanted Crime</title>
+  <style>
+    :root {
+      --bg: #121213;
+      --card-bg: #1a1a1b;
+      --border: #3a3a3c;
+      --accent: #b01b1b;
+      --text: #ffffff;
+      --subtext: #a0a0a0;
+      --correct: #538d4e;
+      --wrong: #ba3030;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+
+    header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; width: 100%; max-width: 500px; }
+    h1 { font-size: 2.2rem; letter-spacing: 2px; color: var(--accent); font-weight: 900; }
+    p.subtitle { color: var(--subtext); font-size: 0.9rem; margin-top: 4px; }
+
+    .game-container { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 500px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+    .image-wrapper { text-align: center; margin-bottom: 15px; position: relative; display: flex; justify-content: center; }
+    .image-wrapper img { width: 200px; height: 250px; object-fit: cover; border-radius: 8px; border: 3px solid var(--border); background-color: #242426; }
+
+    .fugitive-name { text-align: center; font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; }
+
+    .clues-box { background: #242426; border-radius: 8px; padding: 15px; margin-bottom: 20px; font-size: 0.9rem; }
+    .clue-item { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--border); }
+    .clue-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .clue-label { font-weight: bold; color: var(--accent); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
+
+    .controls { display: flex; flex-direction: column; gap: 10px; }
+    select, button { padding: 12px; font-size: 1rem; border-radius: 6px; border: 1px solid var(--border); background: #2c2c2e; color: white; outline: none; }
+    select:focus { border-color: var(--accent); }
+    
+    button.btn-submit { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
+    button.btn-submit:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .guesses-tracker { display: flex; justify-content: center; gap: 8px; margin-top: 15px; }
+    .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--border); }
+    .dot.wrong { background: var(--wrong); }
+    .dot.correct { background: var(--correct); }
+    .dot.current { border: 2px solid var(--text); }
+
+    .stats-bar { display: flex; justify-content: space-around; margin-top: 20px; text-align: center; background: #161617; padding: 10px; border-radius: 8px; }
+    .stat-val { font-size: 1.2rem; font-weight: bold; }
+    .stat-lbl { font-size: 0.7rem; color: var(--subtext); text-transform: uppercase; }
+
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .modal.active { opacity: 1; pointer-events: auto; }
+    .modal-content { background: var(--card-bg); padding: 30px; border-radius: 12px; max-width: 400px; text-align: center; border: 1px solid var(--border); }
+    .modal h2 { margin-bottom: 10px; }
+    .modal p { margin-bottom: 20px; color: var(--subtext); }
+
+    #loader { text-align: center; padding: 40px; color: var(--subtext); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>WANTEDLE</h1>
+    <p class="subtitle">Guess the primary crime category of today's FBI fugitive</p>
+  </header>
+
+  <div class="game-container">
+    <div id="loader">Accessing FBI database...</div>
+    
+    <div id="game-ui" style="display: none;">
+      <div class="image-wrapper">
+        <img id="fugitive-img" src="" alt="Fugitive Mugshot" onerror="handleImageError(this)">
+      </div>
+      
+      <div class="fugitive-name" id="fugitive-title">Loading...</div>
+
+      <div class="clues-box" id="clues-list"></div>
+
+      <div class="controls">
+        <select id="crime-select">
+          <option value="">-- Choose Primary Crime --</option>
+        </select>
+        <button class="btn-submit" id="submit-btn" onclick="makeGuess()">Submit Guess</button>
+      </div>
+
+      <div class="guesses-tracker" id="tracker">
+        <div class="dot current"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+
+      <div class="stats-bar">
+        <div><div class="stat-val" id="stat-played">0</div><div class="stat-lbl">Played</div></div>
+        <div><div class="stat-val" id="stat-wins">0</div><div class="stat-lbl">Wins</div></div>
+        <div><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="game-modal">
+    <div class="modal-content">
+      <h2 id="modal-title">RESULT</h2>
+      <p id="modal-body">Details</p>
+      <button class="btn-submit" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const CRIME_CATEGORIES = [
+      "Cyber's Most Wanted",
+      "White-Collar Crime",
+      "Violent Crime - Murders",
+      "Counterintelligence",
+      "Bank Robbers",
+      "Human Trafficking",
+      "Criminal Enterprise Investigations",
+      "Domestic Terrorism",
+      "Seeking Information"
+    ];
+
+    // SVG Silhouette fallback if FBI mugshot links break
+    const SILHOUETTE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="250" viewBox="0 0 200 250"><rect width="100%" height="100%" fill="%23242426"/><path d="M100 40 a40 40 0 1 0 0.1 0 Z M50 210 c0-40 20-60 50-60 s50 20 50 60 Z" fill="%233a3a3c"/><text x="50%" y="85%" dominant-baseline="middle" text-anchor="middle" fill="%23a0a0a0" font-family="sans-serif" font-size="12">PHOTO REDACTED</text></svg>`;
+
+    const FALLBACK_CASES = [
+      {
+        title: "Ruja Ignatova",
+        images: [{ original: "https://www.fbi.gov/wanted/topten/ruja-ignatova/@@images/image" }],
+        subjects: ["White-Collar Crime"],
+        hair_raw: "Dark", eyes_raw: "Brown", sex: "Female",
+        reward_text: "Up to $5,000,000",
+        field_offices: ["New York"],
+        aliases: ["The Cryptoqueen"],
+        description: "Participated in a massive fraud scheme involving the fake cryptocurrency OneCoin."
+      },
+      {
+        title: "Bhadreshkumar Chetanbhai Patel",
+        images: [{ original: "https://www.fbi.gov/wanted/topten/bhadreshkumar-chetanbhai-patel/@@images/image" }],
+        subjects: ["Violent Crime - Murders"],
+        hair_raw: "Brown", eyes_raw: "Brown", sex: "Male",
+        reward_text: "Up to $250,000",
+        field_offices: ["Baltimore"],
+        aliases: ["Bhadresh"],
+        description: "Wanted for allegedly stabbing his wife to death inside a donut shop in Hanover, Maryland."
+      }
+    ];
+
+    let fugitive = null;
+    let currentAttempt = 0;
+    const MAX_ATTEMPTS = 5;
+    let userGuessed = false;
+
+    const TODAY_KEY = `wantedle_${new Date().toISOString().slice(0,10)}`;
+
+    async function initGame() {
+      populateDropdown();
+      updateStatsUI();
+
+      // 1.5-second timeout controller so loading never drags
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1500);
+
+      try {
+        // High-speed CORS proxy
+        const proxyUrl = 'https://corsproxy.io/?';
+        const targetUrl = 'https://api.fbi.gov/wanted/v1/list?page=1&pageSize=40';
+        
+        const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        const data = await response.json();
+        
+        const validItems = data.items.filter(item => 
+          item.images && item.images.length > 0 && 
+          item.subjects && item.subjects.length > 0 &&
+          item.title
+        );
+
+        if (validItems.length > 0) {
+          const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
+          const daySeed = parseInt(dateStr, 10);
+          fugitive = validItems[daySeed % validItems.length];
+        } else {
+          throw new Error("No valid data returned");
+        }
+
+      } catch (err) {
+        console.warn("API network call slow or failed. Instant loading local fallback case.", err);
+        const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
+        const daySeed = parseInt(dateStr, 10);
+        fugitive = FALLBACK_CASES[daySeed % FALLBACK_CASES.length];
+      }
+
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('game-ui').style.display = 'block';
+
+      renderFugitiveCard();
+      checkExistingSession();
+    }
+
+    function populateDropdown() {
+      const select = document.getElementById('crime-select');
+      CRIME_CATEGORIES.sort().forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
+      });
+    }
+
+    function getProxyImageUrl(rawUrl) {
+      if (!rawUrl) return SILHOUETTE_SVG;
+      // Route image through WSrv.nl proxy to bypass fbi.gov hotlink protection
+      return `https://images.weserv.nl/?url=${encodeURIComponent(rawUrl)}&w=300&h=380&fit=cover`;
+    }
+
+    function renderFugitiveCard() {
+      const imgElem = document.getElementById('fugitive-img');
+      const rawImgUrl = fugitive.images && fugitive.images[0] ? fugitive.images[0].original || fugitive.images[0].large : null;
+      
+      imgElem.src = getProxyImageUrl(rawImgUrl);
+      document.getElementById('fugitive-title').textContent = sanitizeText(fugitive.title);
+      renderClues();
+    }
+
+    function handleImageError(img) {
+      img.onerror = null;
+      img.src = SILHOUETTE_SVG;
+    }
+
+    function renderClues() {
+      const container = document.getElementById('clues-list');
+      container.innerHTML = '';
+
+      const clues = [
+        { label: 'Physical Attributes', text: `Hair: ${fugitive.hair_raw || 'Unknown'} | Eyes: ${fugitive.eyes_raw || 'Unknown'} | Sex: ${fugitive.sex || 'Unknown'}` },
+        { label: 'Reward Info', text: fugitive.reward_text ? sanitizeText(fugitive.reward_text) : 'No specific bounty amount listed.' },
+        { label: 'Field Office', text: fugitive.field_offices ? fugitive.field_offices.join(', ').toUpperCase() : 'General FBI Investigation' },
+        { label: 'Associated Aliases', text: fugitive.aliases ? sanitizeText(fugitive.aliases.slice(0, 3).join(', ')) : 'None registered' },
+        { label: 'Redacted Summary', text: sanitizeSummary(fugitive.description || fugitive.caution || 'No summary available.') }
+      ];
+
+      for (let i = 0; i <= currentAttempt && i < clues.length; i++) {
+        const div = document.createElement('div');
+        div.className = 'clue-item';
+        div.innerHTML = `<div class="clue-label">Clue ${i+1}: ${clues[i].label}</div><div>${clues[i].text}</div>`;
+        container.appendChild(div);
+      }
+    }
+
+    function sanitizeText(str) {
+      if (!str) return '';
+      let cleaned = str;
+      CRIME_CATEGORIES.forEach(cat => {
+        const words = cat.split(' ');
+        words.forEach(w => {
+          if (w.length > 3) {
+            const reg = new RegExp(w, 'gi');
+            cleaned = cleaned.replace(reg, '[REDACTED]');
+          }
+        });
+      });
+      return cleaned;
+    }
+
+    function sanitizeSummary(text) {
+      let sanitized = sanitizeText(text);
+      return sanitized.length > 180 ? sanitized.substring(0, 180) + '...' : sanitized;
+    }
+
+    function makeGuess() {
+      if (userGuessed || currentAttempt >= MAX_ATTEMPTS) return;
+
+      const select = document.getElementById('crime-select');
+      const selectedGuess = select.value;
+
+      if (!selectedGuess) {
+        alert('Please select a crime category!');
+        return;
+      }
+
+      const dots = document.querySelectorAll('.dot');
+      const actualSubjects = fugitive.subjects.map(s => s.toLowerCase());
+      
+      const isCorrect = actualSubjects.some(subj => 
+        subj.includes(selectedGuess.toLowerCase()) || selectedGuess.toLowerCase().includes(subj)
+      );
+
+      if (isCorrect) {
+        dots[currentAttempt].className = 'dot correct';
+        endGame(true, false);
+      } else {
+        dots[currentAttempt].className = 'dot wrong';
+        currentAttempt++;
+
+        if (currentAttempt < MAX_ATTEMPTS) {
+          dots[currentAttempt].className = 'dot current';
+          renderClues();
+        } else {
+          endGame(false, false);
+        }
+      }
+
+      saveSession(isCorrect);
+    }
+
+    function endGame(won, isReload = false) {
+      userGuessed = true;
+      document.getElementById('submit-btn').disabled = true;
+      document.getElementById('crime-select').disabled = true;
+
+      // Only update stats if it's a fresh guess, NOT a page refresh
+      if (!isReload) {
+        updateStats(won);
+      }
+
+      const modal = document.getElementById('game-modal');
+      const title = document.getElementById('modal-title');
+      const body = document.getElementById('modal-body');
+
+      title.textContent = won ? 'CASE SOLVED!' : 'SUSPECT ESCAPED!';
+      title.style.color = won ? 'var(--correct)' : 'var(--wrong)';
+      
+      body.innerHTML = `
+        <strong>Fugitive:</strong> ${fugitive.title}<br>
+        <strong>Actual Crimes:</strong> ${fugitive.subjects.join(', ')}<br><br>
+        Come back tomorrow for a new FBI Most Wanted case!
+      `;
+
+      if (!isReload) {
+        setTimeout(() => modal.classList.add('active'), 600);
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('game-modal').classList.remove('active');
+    }
+
+    function saveSession(won) {
+      const sessionData = { attempt: currentAttempt, won: won, completed: true };
+      localStorage.setItem(TODAY_KEY, JSON.stringify(sessionData));
+    }
+
+    function checkExistingSession() {
+      const saved = localStorage.getItem(TODAY_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        currentAttempt = data.attempt;
+        
+        const dots = document.querySelectorAll('.dot');
+        for (let i = 0; i < currentAttempt; i++) {
+          dots[i].className = 'dot wrong';
+        }
+
+        if (data.completed) {
+          if (data.won && dots[currentAttempt]) {
+            dots[currentAttempt].className = 'dot correct';
+          }
+          // Pass isReload = true so score count doesn't increment on refresh
+          endGame(data.won, true);
+        }
+      }
+    }
+
+    function updateStats(won) {
+      let stats = JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 };
+      stats.played++;
+      if (won) {
+        stats.wins++;
+        stats.streak++;
+      } else {
+        stats.streak = 0;
+      }
+      localStorage.setItem('wantedle_stats', JSON.stringify(stats));
+      updateStatsUI();
+    }
+
+    function updateStatsUI() {
+      let stats = JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 };
+      document.getElementById('stat-played').textContent = stats.played;
+      document.getElementById('stat-wins').textContent = stats.wins;
+      document.getElementById('stat-streak').textContent = stats.streak;
+    }
+
+    initGame();
+  </script>
+</body>
+</html>
