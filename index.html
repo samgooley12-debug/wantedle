@@ -21,26 +21,26 @@
       --wrong: #ba3030;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
 
     header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; width: 100%; max-width: 500px; }
-    h1 { font-size: 2.2rem; letter-spacing: 2px; color: var(--accent); font-weight: 900; }
+    h1 { font-size: 2.2rem; letter-spacing: 3px; color: var(--accent); font-weight: 900; }
     p.subtitle { color: var(--subtext); font-size: 0.9rem; margin-top: 4px; }
 
     .game-container { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 500px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
     /* Home Screen Styles */
     .home-card { text-align: center; display: flex; flex-direction: column; gap: 15px; }
-    .mode-btn { background: #2c2c2e; border: 1px solid var(--border); border-radius: 8px; padding: 18px; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s, border-color 0.2s; display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; }
-    .mode-btn:hover { background: #3a3a3c; border-color: var(--accent); }
+    .mode-btn { background: #2c2c2e; border: 1px solid var(--border); border-radius: 8px; padding: 18px; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; }
+    .mode-btn:hover { background: #3a3a3c; border-color: var(--accent); transform: translateY(-1px); }
     .mode-btn.primary { background: var(--accent); border: none; }
     .mode-btn.primary:hover { opacity: 0.9; }
     .mode-desc { font-size: 0.8rem; font-weight: normal; color: rgba(255,255,255,0.7); }
 
     /* Top Nav in Game */
     .game-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed var(--border); padding-bottom: 10px; }
-    .nav-btn { background: transparent; border: 1px solid var(--border); color: var(--subtext); padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; cursor: pointer; }
+    .nav-btn { background: transparent; border: 1px solid var(--border); color: var(--subtext); padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; }
     .nav-btn:hover { color: white; border-color: white; }
     .mode-badge { font-size: 0.75rem; text-transform: uppercase; font-weight: bold; background: #2c2c2e; padding: 4px 10px; border-radius: 12px; color: var(--accent); letter-spacing: 0.5px; }
 
@@ -51,9 +51,9 @@
     .fugitive-name { text-align: center; font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; }
 
     .clues-box { background: #242426; border-radius: 8px; padding: 15px; margin-bottom: 20px; font-size: 0.9rem; }
-    .clue-item { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--border); }
+    .clue-item { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--border); animation: fadeIn 0.3s ease; }
     .clue-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-    .clue-label { font-weight: bold; color: var(--accent); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
+    .clue-label { font-weight: bold; color: var(--accent); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; margin-bottom: 2px; }
 
     .controls { display: flex; flex-direction: column; gap: 10px; }
     select, button.btn-submit { padding: 12px; font-size: 1rem; border-radius: 6px; border: 1px solid var(--border); background: #2c2c2e; color: white; outline: none; }
@@ -64,22 +64,27 @@
     button:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .guesses-tracker { display: flex; justify-content: center; gap: 8px; margin-top: 15px; }
-    .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--border); }
-    .dot.wrong { background: var(--wrong); }
-    .dot.correct { background: var(--correct); }
+    .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--border); transition: all 0.3s ease; }
+    .dot.wrong { background: var(--wrong); transform: scale(1.1); }
+    .dot.correct { background: var(--correct); transform: scale(1.1); }
     .dot.current { border: 2px solid var(--text); }
 
     .stats-bar { display: flex; justify-content: space-around; margin-top: 20px; text-align: center; background: #161617; padding: 10px; border-radius: 8px; }
     .stat-val { font-size: 1.2rem; font-weight: bold; }
     .stat-lbl { font-size: 0.7rem; color: var(--subtext); text-transform: uppercase; }
 
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 100; }
     .modal.active { opacity: 1; pointer-events: auto; }
-    .modal-content { background: var(--card-bg); padding: 30px; border-radius: 12px; max-width: 400px; text-align: center; border: 1px solid var(--border); width: 100%; display: flex; flex-direction: column; gap: 12px; }
-    .modal h2 { margin-bottom: 5px; }
-    .modal p { color: var(--subtext); font-size: 0.95rem; }
+    .modal-content { background: var(--card-bg); padding: 30px; border-radius: 12px; max-width: 400px; text-align: center; border: 1px solid var(--border); width: 100%; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+    .modal h2 { font-size: 1.6rem; letter-spacing: 1px; }
+    .modal p { color: var(--subtext); font-size: 0.95rem; line-height: 1.4; }
 
-    #loader { text-align: center; padding: 40px; color: var(--subtext); }
+    #loader { text-align: center; padding: 40px; color: var(--subtext); font-size: 1.1rem; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -100,7 +105,7 @@
 
       <button class="mode-btn" onclick="startUnlimitedMode()">
         <span>♾️ Play Unlimited Mode</span>
-        <span class="mode-desc">Endless random cases. Great for practice!</span>
+        <span class="mode-desc">Endless random cases from the FBI archives</span>
       </button>
 
       <div class="stats-bar">
@@ -156,7 +161,7 @@
   <div class="modal" id="game-modal">
     <div class="modal-content">
       <h2 id="modal-title">RESULT</h2>
-      <div id="modal-body">Details</div>
+      <div id="modal-body" style="text-align: left; background: #161617; padding: 15px; border-radius: 8px; border: 1px solid var(--border);">Details</div>
       <button class="btn-submit" id="modal-action-btn" onclick="handleModalAction()">Close</button>
       <button class="nav-btn" style="width: 100%;" onclick="returnToHome()">Return to Main Menu</button>
     </div>
@@ -215,11 +220,9 @@
     let currentAttempt = 0;
     const MAX_ATTEMPTS = 5;
     let userGuessed = false;
-    let activeMode = 'daily'; // 'daily' or 'unlimited'
+    let activeMode = 'daily'; 
 
-    // Unlimited Session Counters
     let unlimitedStats = { played: 0, wins: 0, streak: 0 };
-
     const TODAY_KEY = `wantedle_${new Date().toISOString().slice(0,10)}`;
 
     function populateDropdown() {
@@ -236,33 +239,43 @@
     async function fetchFugitiveData() {
       if (fugitivePool.length > 0) return fugitivePool;
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1500);
+      const proxies = [
+        url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+      ];
 
-      try {
-        const proxyUrl = 'https://api.allorigins.win/raw?url=';
-        const targetUrl = 'https://api.fbi.gov/wanted/v1/list?page=1&pageSize=40';
-        
-        const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), { signal: controller.signal });
-        clearTimeout(timeoutId);
+      const targetUrl = 'https://api.fbi.gov/wanted/v1/list?page=1&pageSize=50';
 
-        const data = await response.json();
-        const validItems = data.items.filter(item => 
-          item.images && item.images.length > 0 && 
-          item.subjects && item.subjects.length > 0 &&
-          item.title
-        );
+      for (const proxyFn of proxies) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-        if (validItems.length > 0) {
-          fugitivePool = validItems;
-        } else {
-          throw new Error("No items returned");
+          const response = await fetch(proxyFn(targetUrl), { signal: controller.signal });
+          clearTimeout(timeoutId);
+
+          if (!response.ok) throw new Error('Proxy HTTP response not OK');
+          
+          const data = await response.json();
+          const items = data.items || data;
+
+          const validItems = items.filter(item => 
+            item.images && item.images.length > 0 && 
+            item.subjects && item.subjects.length > 0 &&
+            item.title
+          );
+
+          if (validItems.length > 0) {
+            fugitivePool = validItems;
+            return fugitivePool;
+          }
+        } catch (err) {
+          console.warn("Proxy attempt failed or timed out, trying next...", err);
         }
-      } catch (err) {
-        console.warn("API call timeout or error. Using fallback database.", err);
-        fugitivePool = FALLBACK_CASES;
       }
 
+      console.warn("All live proxy requests failed. Using fallback case pool.");
+      fugitivePool = FALLBACK_CASES;
       return fugitivePool;
     }
 
@@ -289,7 +302,6 @@
 
       await fetchFugitiveData();
 
-      // Select random fugitive
       const randomIndex = Math.floor(Math.random() * fugitivePool.length);
       fugitive = fugitivePool[randomIndex];
 
@@ -442,8 +454,8 @@
       title.style.color = won ? 'var(--correct)' : 'var(--wrong)';
       
       body.innerHTML = `
-        <strong>Fugitive:</strong> ${fugitive.title}<br>
-        <strong>Actual Crimes:</strong> ${fugitive.subjects.join(', ')}
+        <div style="margin-bottom: 8px;"><strong>Fugitive:</strong> ${fugitive.title}</div>
+        <div><strong>Actual Category:</strong> ${fugitive.subjects.join(', ')}</div>
       `;
 
       if (activeMode === 'unlimited') {
