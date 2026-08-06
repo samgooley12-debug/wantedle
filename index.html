@@ -3,534 +3,470 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WANTEDLE — Guess the FBI Most Wanted Crime</title>
+  <title>WANTEDLE — FBI Criminal Case Files</title>
   
-  <meta name="description" content="A daily and unlimited FBI Most Wanted guessing game. Test your detective skills!">
-  <meta property="og:title" content="WANTEDLE — FBI Fugitive Game">
+  <meta name="description" content="Identify active FBI fugitives based on crime categories and case files.">
 
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Inter:wght@400;600;800;900&display=swap');
+
     :root {
-      --bg: #0f0f10;
-      --card-bg: #18181a;
-      --border: #2e2e32;
-      --border-glow: #44444a;
-      --accent: #c02626;
-      --accent-hover: #e02e2e;
-      --text: #f0f0f2;
-      --subtext: #8e8e93;
-      --correct: #43a047;
-      --wrong: #e53935;
-      --transition-speed: 0.25s;
+      --bg: #0b0c0e;
+      --panel-bg: #121418;
+      --panel-border: #262930;
+      --accent-red: #d32f2f;
+      --accent-gold: #c5a059;
+      --text-main: #e2e8f0;
+      --text-muted: #64748b;
+      --correct: #2e7d32;
+      --wrong: #c62828;
     }
 
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
 
-    body { 
-      background-color: var(--bg); 
-      color: var(--text); 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      min-height: 100vh; 
-      padding: 20px; 
-      overflow-x: hidden;
-    }
-
-    header { 
-      text-align: center; 
-      margin-bottom: 20px; 
-      border-bottom: 1px solid var(--border); 
-      padding-bottom: 15px; 
-      width: 100%; 
-      max-width: 520px; 
-      animation: fadeInDown 0.5s ease-out;
-    }
-
-    h1 { 
-      font-size: 2.4rem; 
-      letter-spacing: 4px; 
-      color: var(--accent); 
-      font-weight: 900; 
-      text-shadow: 0 0 15px rgba(192, 38, 38, 0.3);
-    }
-
-    p.subtitle { 
-      color: var(--subtext); 
-      font-size: 0.9rem; 
-      margin-top: 4px; 
-    }
-
-    .game-container { 
-      background: var(--card-bg); 
-      border: 1px solid var(--border); 
-      border-radius: 16px; 
-      width: 100%; 
-      max-width: 520px; 
-      padding: 24px; 
-      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-      transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-      position: relative;
-    }
-
-    /* Screen Transitions */
-    .screen {
-      opacity: 0;
-      transform: scale(0.98);
-      transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
-      display: none;
-    }
-
-    .screen.active {
-      display: flex;
-      flex-direction: column;
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    /* Home Screen Styles */
-    .home-card { 
-      text-align: center; 
-      gap: 16px; 
-    }
-
-    .mode-btn { 
-      background: #222225; 
-      border: 1px solid var(--border); 
-      border-radius: 12px; 
-      padding: 20px; 
-      color: white; 
-      font-size: 1.15rem; 
-      font-weight: 700; 
-      cursor: pointer; 
-      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      gap: 6px; 
-      outline: none;
-    }
-
-    .mode-btn:hover { 
-      background: #2a2a2e; 
-      border-color: var(--accent); 
-      transform: translateY(-2px); 
-      box-shadow: 0 6px 20px rgba(192, 38, 38, 0.2);
-    }
-
-    .mode-btn:active {
-      transform: translateY(0);
-    }
-
-    .mode-btn.primary { 
-      background: var(--accent); 
-      border: none; 
-    }
-
-    .mode-btn.primary:hover { 
-      background: var(--accent-hover); 
-      box-shadow: 0 6px 20px rgba(224, 46, 46, 0.4);
-    }
-
-    .mode-desc { 
-      font-size: 0.82rem; 
-      font-weight: 400; 
-      color: rgba(255,255,255,0.75); 
-    }
-
-    /* Top Nav in Game */
-    .game-nav { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      margin-bottom: 18px; 
-      border-bottom: 1px dashed var(--border); 
-      padding-bottom: 12px; 
-    }
-
-    .nav-btn { 
-      background: transparent; 
-      border: 1px solid var(--border); 
-      color: var(--subtext); 
-      padding: 8px 14px; 
-      font-size: 0.85rem; 
-      font-weight: 600;
-      border-radius: 8px; 
-      cursor: pointer; 
-      transition: all 0.2s ease; 
-    }
-
-    .nav-btn:hover { 
-      color: white; 
-      border-color: var(--text); 
-      background: rgba(255,255,255,0.05);
-    }
-
-    .mode-badge { 
-      font-size: 0.75rem; 
-      text-transform: uppercase; 
-      font-weight: 800; 
-      background: #222225; 
-      padding: 6px 12px; 
-      border-radius: 20px; 
-      color: var(--accent); 
-      border: 1px solid rgba(192, 38, 38, 0.3);
-      letter-spacing: 0.5px; 
-    }
-
-    /* Game Image Frame */
-    .image-wrapper { 
-      text-align: center; 
-      margin-bottom: 18px; 
-      position: relative; 
-      display: flex; 
-      justify-content: center; 
-      perspective: 1000px;
-    }
-
-    .image-wrapper img { 
-      width: 210px; 
-      height: 260px; 
-      object-fit: cover; 
-      border-radius: 12px; 
-      border: 3px solid var(--border); 
-      background-color: #222225; 
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      transition: transform 0.4s ease, border-color 0.3s ease;
-    }
-
-    .image-wrapper img:hover {
-      border-color: var(--border-glow);
-      transform: scale(1.02);
-    }
-
-    .fugitive-name { 
-      text-align: center; 
-      font-size: 1.35rem; 
-      font-weight: 800; 
-      margin-bottom: 16px; 
-      letter-spacing: 0.5px;
-    }
-
-    /* Clues Section */
-    .clues-box { 
-      background: #111113; 
-      border: 1px solid var(--border);
-      border-radius: 12px; 
-      padding: 16px; 
-      margin-bottom: 20px; 
-      font-size: 0.9rem; 
-      min-height: 120px;
-    }
-
-    .clue-item { 
-      margin-bottom: 12px; 
-      padding-bottom: 10px; 
-      border-bottom: 1px dashed var(--border); 
-      animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1); 
-    }
-
-    .clue-item:last-child { 
-      margin-bottom: 0; 
-      padding-bottom: 0; 
-      border-bottom: none; 
-    }
-
-    .clue-label { 
-      font-weight: 800; 
-      color: var(--accent); 
-      text-transform: uppercase; 
-      font-size: 0.72rem; 
-      letter-spacing: 0.8px; 
-      margin-bottom: 3px; 
-    }
-
-    /* Controls & Dropdown */
-    .controls { 
-      display: flex; 
-      flex-direction: column; 
-      gap: 12px; 
-    }
-
-    select, button.btn-submit { 
-      padding: 14px; 
-      font-size: 1rem; 
-      border-radius: 10px; 
-      border: 1px solid var(--border); 
-      background: #222225; 
-      color: white; 
-      outline: none; 
-      transition: all 0.2s ease;
-    }
-
-    select:focus { 
-      border-color: var(--accent); 
-      box-shadow: 0 0 0 3px rgba(192, 38, 38, 0.2);
-    }
-
-    button.btn-submit { 
-      background: var(--accent); 
-      color: white; 
-      border: none; 
-      font-weight: 700; 
-      cursor: pointer; 
-      letter-spacing: 0.5px;
-    }
-
-    button.btn-submit:hover:not(:disabled) { 
-      background: var(--accent-hover); 
-      transform: translateY(-1px);
-      box-shadow: 0 4px 15px rgba(224, 46, 46, 0.3);
-    }
-
-    button.btn-submit:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    button:disabled { 
-      opacity: 0.35; 
-      cursor: not-allowed; 
-    }
-
-    /* Guess Dots */
-    .guesses-tracker { 
-      display: flex; 
-      justify-content: center; 
-      gap: 10px; 
-      margin-top: 18px; 
-    }
-
-    .dot { 
-      width: 14px; 
-      height: 14px; 
-      border-radius: 50%; 
-      background: var(--border); 
-      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); 
-    }
-
-    .dot.wrong { 
-      background: var(--wrong); 
-      transform: scale(1.25); 
-      box-shadow: 0 0 10px rgba(229, 57, 53, 0.5);
-    }
-
-    .dot.correct { 
-      background: var(--correct); 
-      transform: scale(1.25); 
-      box-shadow: 0 0 10px rgba(67, 160, 71, 0.5);
-    }
-
-    .dot.current { 
-      border: 2px solid var(--text); 
-      transform: scale(1.1);
-    }
-
-    /* Stats Bar */
-    .stats-bar { 
-      display: flex; 
-      justify-content: space-around; 
-      margin-top: 22px; 
-      text-align: center; 
-      background: #111113; 
-      padding: 12px; 
-      border-radius: 10px; 
-      border: 1px solid var(--border);
-    }
-
-    .stat-val { 
-      font-size: 1.25rem; 
-      font-weight: 800; 
-    }
-
-    .stat-lbl { 
-      font-size: 0.68rem; 
-      color: var(--subtext); 
-      text-transform: uppercase; 
-      letter-spacing: 0.5px;
-      margin-top: 2px;
-    }
-
-    /* Modal Styling */
-    .modal { 
-      position: fixed; 
-      inset: 0; 
-      background: rgba(0,0,0,0.85); 
-      backdrop-filter: blur(6px);
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      padding: 20px; 
-      opacity: 0; 
-      pointer-events: none; 
-      transition: opacity 0.3s ease; 
-      z-index: 100; 
-    }
-
-    .modal.active { 
-      opacity: 1; 
-      pointer-events: auto; 
-    }
-
-    .modal-content { 
-      background: var(--card-bg); 
-      padding: 32px 24px; 
-      border-radius: 16px; 
-      max-width: 420px; 
-      text-align: center; 
-      border: 1px solid var(--border); 
-      width: 100%; 
-      display: flex; 
-      flex-direction: column; 
-      gap: 16px; 
-      box-shadow: 0 20px 50px rgba(0,0,0,0.9); 
-      transform: translateY(20px);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .modal.active .modal-content {
-      transform: translateY(0);
-    }
-
-    .modal h2 { 
-      font-size: 1.8rem; 
-      letter-spacing: 1px; 
-      font-weight: 900;
-    }
-
-    /* Loader */
-    .loader-container {
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
       display: flex;
       flex-direction: column;
       align-items: center;
+      min-height: 100vh;
+      padding: 20px 12px;
+      background-image: radial-gradient(#1a1d24 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* Top Bar */
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+      width: 100%;
+      max-width: 520px;
+      border-bottom: 2px solid var(--panel-border);
+      padding-bottom: 16px;
+    }
+
+    .badge-classified {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--accent-gold);
+      background: rgba(197, 160, 89, 0.1);
+      border: 1px solid var(--accent-gold);
+      padding: 3px 8px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: 4px;
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    h1 span { color: var(--accent-red); }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    /* Main Card */
+    .game-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      width: 100%;
+      max-width: 520px;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    .game-card::before {
+      content: 'CONFIDENTIAL // FBI FUGITIVE DIVISION';
+      position: absolute;
+      top: -10px;
+      left: 16px;
+      background: var(--bg);
+      padding: 0 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    /* Screens */
+    .screen { display: none; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* Home Buttons */
+    .home-menu { gap: 14px; }
+    
+    .btn-mode {
+      background: #181b22;
+      border: 1px solid var(--panel-border);
+      padding: 18px;
+      border-radius: 6px;
+      color: #fff;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .btn-mode:hover {
+      border-color: var(--accent-gold);
+      background: #1f232c;
+      transform: translateY(-2px);
+    }
+
+    .btn-mode.primary {
+      border-color: var(--accent-red);
+      background: rgba(211, 47, 47, 0.1);
+    }
+
+    .btn-mode.primary:hover {
+      background: rgba(211, 47, 47, 0.2);
+    }
+
+    .btn-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* Game Navigation Header */
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .btn-back {
+      background: transparent;
+      border: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .btn-back:hover { color: #fff; border-color: #fff; }
+
+    .mode-indicator {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent-red);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* Image Display Frame */
+    .mugshot-container {
+      position: relative;
+      width: 180px;
+      height: 230px;
+      margin: 0 auto 16px auto;
+      background: #000;
+      border: 2px solid var(--panel-border);
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+      overflow: hidden;
+    }
+
+    .mugshot-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: contrast(1.05);
+      transition: opacity 0.2s ease;
+    }
+
+    /* Tactical Overlay Effect */
+    .mugshot-container::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(255,255,255,0.05);
+      pointer-events: none;
+      background: linear-gradient(rgba(18, 20, 24, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+    }
+
+    .suspect-name {
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+
+    /* Intelligence Brief (Clues) */
+    .brief-box {
+      background: #0a0b0d;
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 16px;
+      min-height: 140px;
+    }
+
+    .clue-entry {
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed #1e222a;
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    .clue-entry:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    .clue-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    /* Inputs */
+    .action-stack { display: flex; flex-direction: column; gap: 10px; }
+
+    select, .btn-action {
+      width: 100%;
+      padding: 12px;
+      border-radius: 4px;
+      border: 1px solid var(--panel-border);
+      background: #161920;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    select:focus { border-color: var(--accent-red); }
+
+    .btn-action {
+      background: var(--accent-red);
+      border: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    .btn-action:hover:not(:disabled) { background: #b71c1c; }
+    .btn-action:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Tracker Dots */
+    .attempts-tracker {
+      display: flex;
       justify-content: center;
-      padding: 50px 20px;
-      gap: 16px;
+      gap: 8px;
+      margin-top: 16px;
     }
 
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    .slot {
+      width: 12px;
+      height: 12px;
+      background: var(--panel-border);
+      border-radius: 2px;
+      transition: all 0.2s;
     }
 
-    /* Keyframes */
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .slot.wrong { background: var(--wrong); }
+    .slot.correct { background: var(--correct); }
+    .slot.active { border: 1px solid #fff; }
+
+    /* Stats Bar */
+    .stats-grid {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 20px;
+      background: #090a0c;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid var(--panel-border);
+      text-align: center;
     }
 
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-12px); }
-      to { opacity: 1; transform: translateY(0); }
+    .stat-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
     }
 
-    @keyframes slideInRight {
-      from { opacity: 0; transform: translateX(15px); }
-      to { opacity: 1; transform: translateX(0); }
+    .stat-lbl {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
     }
 
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20%, 60% { transform: translateX(-6px); }
-      40%, 80% { transform: translateX(6px); }
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 100;
     }
 
-    .shake {
-      animation: shake 0.4s ease-in-out;
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+    .modal-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      padding: 24px;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .modal-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .modal-body {
+      text-align: left;
+      background: #090a0c;
+      padding: 12px;
+      border: 1px solid var(--panel-border);
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    /* Loader */
+    .loader {
+      text-align: center;
+      padding: 40px 0;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>WANTEDLE</h1>
-    <p class="subtitle">Guess the FBI Most Wanted crime category</p>
+    <div class="badge-classified">Official Most Wanted Database</div>
+    <h1>WANTED<span>LE</span></h1>
+    <p class="subtitle">FBI CRIMINAL CLASSIFICATION SYSTEM</p>
   </header>
 
-  <div class="game-container" id="main-container">
-    
+  <div class="game-card">
+
     <!-- 1. HOME SCREEN -->
-    <div id="home-screen" class="screen home-card active">
-      <button class="mode-btn primary" onclick="startDailyMode()">
-        <span>📅 Play Daily Case</span>
-        <span class="mode-desc">Official FBI case refreshed daily</span>
+    <div id="screen-home" class="screen home-menu active">
+      <button class="btn-mode primary" onclick="startDailyMode()">
+        <span class="btn-title">🎯 DAILY CASE FILE</span>
+        <span class="btn-desc">Identify today's primary fugitive. Refreshed daily.</span>
       </button>
 
-      <button class="mode-btn" onclick="startUnlimitedMode()">
-        <span>♾️ Play Unlimited Mode</span>
-        <span class="mode-desc">Cycle through every fugitive in the full database</span>
+      <button class="btn-mode" onclick="startUnlimitedMode()">
+        <span class="btn-title">♾️ UNLIMITED ARCHIVES</span>
+        <span class="btn-desc">Endless criminal records directly from FBI archives.</span>
       </button>
 
-      <div class="stats-bar">
-        <div><div class="stat-val" id="home-stat-played">0</div><div class="stat-lbl">Daily Played</div></div>
-        <div><div class="stat-val" id="home-stat-wins">0</div><div class="stat-lbl">Daily Wins</div></div>
-        <div><div class="stat-val" id="home-stat-streak">0</div><div class="stat-lbl">Streak</div></div>
+      <div class="stats-grid">
+        <div><div class="stat-num" id="home-stat-played">0</div><div class="stat-lbl">Played</div></div>
+        <div><div class="stat-num" id="home-stat-wins">0</div><div class="stat-lbl">Solved</div></div>
+        <div><div class="stat-num" id="home-stat-streak">0</div><div class="stat-lbl">Streak</div></div>
       </div>
     </div>
 
-    <!-- 2. GAME LOADING SCREEN -->
-    <div id="loader" class="screen loader-container">
-      <div class="spinner"></div>
-      <div style="color: var(--subtext); font-size: 0.95rem;" id="loader-text">Accessing FBI Archives...</div>
+    <!-- 2. LOADER SCREEN -->
+    <div id="screen-loader" class="screen loader">
+      <div>[ FETCHING FBI CRIMINAL RECORDS... ]</div>
     </div>
 
-    <!-- 3. MAIN GAME SCREEN -->
-    <div id="game-ui" class="screen">
-      <div class="game-nav">
-        <button class="nav-btn" onclick="returnToHome()">← Home</button>
-        <div class="mode-badge" id="nav-mode-badge">Daily Case</div>
+    <!-- 3. GAMEPLAY SCREEN -->
+    <div id="screen-game" class="screen">
+      <div class="nav-bar">
+        <button class="btn-back" onclick="showScreen('screen-home')">← ABORT</button>
+        <div class="mode-indicator" id="game-mode-tag">DAILY CASE</div>
       </div>
 
-      <div class="image-wrapper">
-        <img id="fugitive-img" src="" alt="Fugitive Mugshot" onerror="handleImageError(this)">
+      <div class="mugshot-container">
+        <img id="suspect-img" src="" alt="Mugshot" onerror="this.src=SILHOUETTE_SVG">
       </div>
-      
-      <div class="fugitive-name" id="fugitive-title">Loading...</div>
 
-      <div class="clues-box" id="clues-list"></div>
+      <div class="suspect-name" id="suspect-title">LOADING...</div>
 
-      <div class="controls">
+      <div class="brief-box" id="clues-container"></div>
+
+      <div class="action-stack">
         <select id="crime-select">
-          <option value="">-- Choose Primary Crime --</option>
+          <option value="">-- SELECT PRIMARY CRIME --</option>
         </select>
-        <button class="btn-submit" id="submit-btn" onclick="makeGuess()">Submit Guess</button>
+        <button class="btn-action" id="submit-btn" onclick="submitGuess()">Submit Analysis</button>
       </div>
 
-      <div class="guesses-tracker" id="tracker">
-        <div class="dot current"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
+      <div class="attempts-tracker" id="tracker">
+        <div class="slot active"></div>
+        <div class="slot"></div>
+        <div class="slot"></div>
+        <div class="slot"></div>
+        <div class="slot"></div>
       </div>
 
-      <div class="stats-bar" id="game-stats-bar">
-        <div><div class="stat-val" id="stat-played">0</div><div class="stat-lbl">Played</div></div>
-        <div><div class="stat-val" id="stat-wins">0</div><div class="stat-lbl">Wins</div></div>
-        <div><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
+      <div class="stats-grid">
+        <div><div class="stat-num" id="stat-played">0</div><div class="stat-lbl">Cases</div></div>
+        <div><div class="stat-num" id="stat-wins">0</div><div class="stat-lbl">Wins</div></div>
+        <div><div class="stat-num" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
       </div>
     </div>
 
   </div>
 
   <!-- RESULT MODAL -->
-  <div class="modal" id="game-modal">
-    <div class="modal-content">
-      <h2 id="modal-title">RESULT</h2>
-      <div id="modal-body" style="text-align: left; background: #111113; padding: 16px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.95rem; line-height: 1.5;">Details</div>
-      <button class="btn-submit" id="modal-action-btn" onclick="handleModalAction()">Next Case</button>
-      <button class="nav-btn" style="width: 100%; padding: 12px;" onclick="returnToHome()">Main Menu</button>
+  <div class="modal-overlay" id="result-modal">
+    <div class="modal-card">
+      <div class="modal-title" id="modal-title">CASE CLOSED</div>
+      <div class="modal-body" id="modal-body"></div>
+      <button class="btn-action" id="modal-btn" onclick="closeModal()">Continue</button>
     </div>
   </div>
 
   <script>
-    const CRIME_CATEGORIES = [
+    // Strict Criminal Category Master List
+    const CRIMINAL_CATEGORIES = [
       "Cyber's Most Wanted",
       "White-Collar Crime",
       "Violent Crime - Murders",
@@ -538,60 +474,59 @@
       "Bank Robbers",
       "Human Trafficking",
       "Criminal Enterprise Investigations",
-      "Domestic Terrorism",
-      "Seeking Information"
+      "Domestic Terrorism"
     ];
 
-    const SILHOUETTE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="210" height="260" viewBox="0 0 200 250"><rect width="100%" height="100%" fill="%23222225"/><path d="M100 40 a40 40 0 1 0 0.1 0 Z M50 210 c0-40 20-60 50-60 s50 20 50 60 Z" fill="%233a3a3c"/><text x="50%" y="85%" dominant-baseline="middle" text-anchor="middle" fill="%238e8e93" font-family="sans-serif" font-size="12">PHOTO REDACTED</text></svg>`;
+    const SILHOUETTE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="230" viewBox="0 0 180 230"><rect width="100%" height="100%" fill="%23000000"/><path d="M90 40 a35 35 0 1 0 0.1 0 Z M45 190 c0-35 20-50 45-50 s45 15 45 50 Z" fill="%231f232c"/><text x="50%" y="85%" dominant-baseline="middle" text-anchor="middle" fill="%2364748b" font-family="monospace" font-size="10">REDACTED</text></svg>`;
 
-    const FALLBACK_CASES = [
+    const FALLBACK_CRIMINALS = [
       {
+        id: "ruja-ignatova",
         title: "Ruja Ignatova",
-        images: [{ original: "https://www.fbi.gov/wanted/topten/ruja-ignatova/@@images/image" }],
+        thumbUrl: "https://www.fbi.gov/wanted/topten/ruja-ignatova/@@images/image/thumb",
         subjects: ["White-Collar Crime"],
-        hair_raw: "Dark", eyes_raw: "Brown", sex: "Female",
-        reward_text: "Up to $5,000,000",
-        field_offices: ["New York"],
-        aliases: ["The Cryptoqueen"],
-        description: "Participated in a massive fraud scheme involving the fake cryptocurrency OneCoin."
+        hair: "Dark", eyes: "Brown", sex: "Female",
+        reward: "Up to $5,000,000",
+        office: "NEW YORK",
+        aliases: "The Cryptoqueen",
+        summary: "Wanted for leadership in a global fraud scheme involving the fake cryptocurrency OneCoin."
       },
       {
+        id: "bhadreshkumar-patel",
         title: "Bhadreshkumar Chetanbhai Patel",
-        images: [{ original: "https://www.fbi.gov/wanted/topten/bhadreshkumar-chetanbhai-patel/@@images/image" }],
+        thumbUrl: "https://www.fbi.gov/wanted/topten/bhadreshkumar-chetanbhai-patel/@@images/image/thumb",
         subjects: ["Violent Crime - Murders"],
-        hair_raw: "Brown", eyes_raw: "Brown", sex: "Male",
-        reward_text: "Up to $250,000",
-        field_offices: ["Baltimore"],
-        aliases: ["Bhadresh"],
-        description: "Wanted for allegedly stabbing his wife to death inside a donut shop in Hanover, Maryland."
+        hair: "Brown", eyes: "Brown", sex: "Male",
+        reward: "Up to $250,000",
+        office: "BALTIMORE",
+        aliases: "Bhadresh",
+        summary: "Wanted for alleged stabbing murder of his wife inside a commercial store in Hanover, Maryland."
       },
       {
+        id: "alejandro-castillo",
         title: "Alejandro Rosales Castillo",
-        images: [{ original: "https://www.fbi.gov/wanted/topten/alejandro-castillo/@@images/image" }],
+        thumbUrl: "https://www.fbi.gov/wanted/topten/alejandro-castillo/@@images/image/thumb",
         subjects: ["Violent Crime - Murders"],
-        hair_raw: "Black", eyes_raw: "Brown", sex: "Male",
-        reward_text: "Up to $250,000",
-        field_offices: ["Charlotte"],
-        aliases: ["Alex Castillo"],
-        description: "Wanted for his alleged involvement in the murder of a female co-worker in Charlotte, North Carolina."
+        hair: "Black", eyes: "Brown", sex: "Male",
+        reward: "Up to $250,000",
+        office: "CHARLOTTE",
+        aliases: "Alex Castillo",
+        summary: "Wanted for involvement in the murder of a female coworker in Charlotte, North Carolina."
       }
     ];
 
-    let fugitivePool = [];
-    let seenFugitiveIds = new Set();
-    let fugitive = null;
-    let currentAttempt = 0;
+    let criminalPool = [];
+    let seenIds = new Set();
+    let currentCase = null;
+    let attemptCount = 0;
     const MAX_ATTEMPTS = 5;
-    let userGuessed = false;
-    let activeMode = 'daily'; 
-
+    let currentMode = 'daily';
     let unlimitedStats = { played: 0, wins: 0, streak: 0 };
-    const TODAY_KEY = `wantedle_${new Date().toISOString().slice(0,10)}`;
 
     function populateDropdown() {
       const select = document.getElementById('crime-select');
-      select.innerHTML = '<option value="">-- Choose Primary Crime --</option>';
-      CRIME_CATEGORIES.slice().sort().forEach(cat => {
+      select.innerHTML = '<option value="">-- SELECT PRIMARY CRIME --</option>';
+      CRIMINAL_CATEGORIES.slice().sort().forEach(cat => {
         const opt = document.createElement('option');
         opt.value = cat;
         opt.textContent = cat;
@@ -599,337 +534,221 @@
       });
     }
 
-    // Shuffle helper to make sure Unlimited mode cycles randomly through everyone
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
-
-    async function fetchFugitiveData() {
-      if (fugitivePool.length > 0) return fugitivePool;
-
-      const loaderText = document.getElementById('loader-text');
-      loaderText.textContent = "Connecting to FBI Live Database...";
+    async function fetchCriminalDatabase() {
+      if (criminalPool.length > 0) return criminalPool;
 
       try {
-        // Attempt 1: Fetch multiple pages directly from the official FBI API
-        let allItems = [];
-        const pagesToFetch = [1, 2, 3];
-
-        for (const page of pagesToFetch) {
-          const res = await fetch(`https://api.fbi.gov/wanted/v1/list?page=${page}&pageSize=50`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.items) allItems.push(...data.items);
-          }
-        }
-
-        if (allItems.length > 0) {
-          fugitivePool = processRawItems(allItems);
-          shuffleArray(fugitivePool);
-          return fugitivePool;
-        }
-      } catch (err) {
-        console.warn("Direct FBI API fetch failed, trying proxy fallback...", err);
-      }
-
-      // Attempt 2: CORS Proxy backup
-      try {
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://api.fbi.gov/wanted/v1/list?page=1&pageSize=50')}`;
-        const res = await fetch(proxyUrl);
-        if (res.ok) {
-          const data = await res.json();
-          const items = data.items || data;
-          if (items && items.length > 0) {
-            fugitivePool = processRawItems(items);
-            shuffleArray(fugitivePool);
-            return fugitivePool;
+        // Query specifically for main fugitives/criminals only
+        const response = await fetch('https://api.fbi.gov/wanted/v1/list?person_classification=main&pageSize=60');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.items) {
+            criminalPool = filterStrictCriminals(data.items);
+            if (criminalPool.length > 0) return criminalPool;
           }
         }
       } catch (err) {
-        console.warn("Proxy attempt failed:", err);
+        console.warn("Direct API fetch failed, loading contingency database...", err);
       }
 
-      // Attempt 3: Local Fallback
-      console.warn("Using built-in fallback dataset.");
-      fugitivePool = processRawItems(FALLBACK_CASES);
-      return fugitivePool;
+      criminalPool = FALLBACK_CRIMINALS;
+      return criminalPool;
     }
 
-    function processRawItems(items) {
-      return items.filter(item => item && item.title).map(item => ({
-        id: item.uid || item.title,
-        title: item.title,
-        images: item.images || [],
-        subjects: (item.subjects && item.subjects.length > 0) ? item.subjects : ["Seeking Information"],
-        hair_raw: item.hair_raw || item.hair || 'Unspecified',
-        eyes_raw: item.eyes_raw || item.eyes || 'Unspecified',
-        sex: item.sex || 'Unspecified',
-        reward_text: item.reward_text || null,
-        field_offices: item.field_offices || [],
-        aliases: item.aliases || [],
-        description: item.description || item.caution || item.details || 'No detailed summary provided in official record.'
-      }));
-    }
+    function filterStrictCriminals(items) {
+      return items.filter(item => {
+        if (!item.title || !item.subjects || item.subjects.length === 0) return false;
 
-    function getNextUnlimitedFugitive() {
-      // Filter out candidates already seen
-      let available = fugitivePool.filter(f => !seenFugitiveIds.has(f.id));
-      
-      // Reset tracker if we completed the entire archive
-      if (available.length === 0) {
-        seenFugitiveIds.clear();
-        available = fugitivePool;
-      }
+        // Strictly exclude missing persons, victims, and non-criminal subjects
+        const lowerSubjects = item.subjects.map(s => s.toLowerCase());
+        const isVictimOrMissing = lowerSubjects.some(s => 
+          s.includes('missing') || 
+          s.includes('kidnap') || 
+          s.includes('seeking info') || 
+          s.includes('victim')
+        );
 
-      const picked = available[Math.floor(Math.random() * available.length)];
-      seenFugitiveIds.add(picked.id);
-      return picked;
+        return !isVictimOrMissing;
+      }).map(item => {
+        // Extract fast thumbnail image
+        let rawImg = null;
+        if (item.images && item.images.length > 0) {
+          rawImg = item.images[0].thumb || item.images[0].large || item.images[0].original;
+        }
+
+        // Fast image proxy for instant load
+        const fastThumb = rawImg 
+          ? `https://images.weserv.nl/?url=${encodeURIComponent(rawImg)}&w=180&h=230&fit=cover` 
+          : SILHOUETTE_SVG;
+
+        return {
+          id: item.uid || item.title,
+          title: item.title,
+          thumbUrl: fastThumb,
+          subjects: item.subjects,
+          hair: item.hair_raw || item.hair || 'Unspecified',
+          eyes: item.eyes_raw || item.eyes || 'Unspecified',
+          sex: item.sex || 'Unspecified',
+          reward: item.reward_text || 'No bounty specified',
+          office: item.field_offices ? item.field_offices.join(', ').toUpperCase() : 'FEDERAL HQ',
+          aliases: item.aliases ? item.aliases.slice(0, 2).join(', ') : 'None Registered',
+          summary: item.description || item.caution || 'Case details restricted.'
+        };
+      });
     }
 
     async function startDailyMode() {
-      activeMode = 'daily';
-      showScreen('loader');
+      currentMode = 'daily';
+      showScreen('screen-loader');
+      await fetchCriminalDatabase();
 
-      await fetchFugitiveData();
+      const dateSeed = parseInt(new Date().toISOString().slice(0,10).replace(/-/g, ''), 10);
+      currentCase = criminalPool[dateSeed % criminalPool.length];
 
-      const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
-      const daySeed = parseInt(dateStr, 10);
-      fugitive = fugitivePool[daySeed % fugitivePool.length];
-
-      document.getElementById('nav-mode-badge').textContent = 'Daily Case';
-      showScreen('game-ui');
-      resetGameUI();
-      renderFugitiveCard();
-      checkExistingDailySession();
+      document.getElementById('game-mode-tag').textContent = 'DAILY CASE';
+      setupGameSession();
     }
 
     async function startUnlimitedMode() {
-      activeMode = 'unlimited';
-      showScreen('loader');
+      currentMode = 'unlimited';
+      showScreen('screen-loader');
+      await fetchCriminalDatabase();
 
-      await fetchFugitiveData();
-      fugitive = getNextUnlimitedFugitive();
+      let available = criminalPool.filter(c => !seenIds.has(c.id));
+      if (available.length === 0) {
+        seenIds.clear();
+        available = criminalPool;
+      }
 
-      document.getElementById('nav-mode-badge').textContent = 'Unlimited Mode';
-      showScreen('game-ui');
-      resetGameUI();
-      renderFugitiveCard();
+      currentCase = available[Math.floor(Math.random() * available.length)];
+      seenIds.add(currentCase.id);
+
+      document.getElementById('game-mode-tag').textContent = 'UNLIMITED ARCHIVES';
+      setupGameSession();
     }
 
-    function resetGameUI() {
-      currentAttempt = 0;
-      userGuessed = false;
+    function setupGameSession() {
+      attemptCount = 0;
       document.getElementById('submit-btn').disabled = false;
       document.getElementById('crime-select').disabled = false;
       document.getElementById('crime-select').value = '';
 
-      const dots = document.querySelectorAll('.dot');
-      dots.forEach((dot, idx) => {
-        dot.className = idx === 0 ? 'dot current' : 'dot';
-      });
+      const img = document.getElementById('suspect-img');
+      img.src = currentCase.thumbUrl;
+      document.getElementById('suspect-title').textContent = redactText(currentCase.title);
 
-      updateStatsUI();
-    }
-
-    function showScreen(screenId) {
-      const screens = document.querySelectorAll('.screen');
-      screens.forEach(s => s.classList.remove('active'));
-
-      setTimeout(() => {
-        screens.forEach(s => s.style.display = 'none');
-        const target = document.getElementById(screenId);
-        target.style.display = screenId === 'home-screen' ? 'flex' : 'block';
-        if (screenId === 'home-screen') target.classList.add('home-card');
-        
-        // Trigger reflow for smooth animation
-        void target.offsetWidth;
-        target.classList.add('active');
-      }, 150);
-    }
-
-    function returnToHome() {
-      closeModal();
-      updateHomeStatsUI();
-      showScreen('home-screen');
-    }
-
-    function getProxyImageUrl(rawUrl) {
-      if (!rawUrl) return SILHOUETTE_SVG;
-      return `https://images.weserv.nl/?url=${encodeURIComponent(rawUrl)}&w=300&h=380&fit=cover`;
-    }
-
-    function renderFugitiveCard() {
-      const imgElem = document.getElementById('fugitive-img');
-      const rawImgUrl = fugitive.images && fugitive.images[0] ? (fugitive.images[0].original || fugitive.images[0].large || fugitive.images[0].thumb) : null;
-      
-      imgElem.style.opacity = '0';
-      imgElem.src = getProxyImageUrl(rawImgUrl);
-      imgElem.onload = () => { imgElem.style.opacity = '1'; };
-      
-      document.getElementById('fugitive-title').textContent = sanitizeText(fugitive.title);
+      resetTrackerUI();
       renderClues();
-    }
-
-    function handleImageError(img) {
-      img.onerror = null;
-      img.src = SILHOUETTE_SVG;
-      img.style.opacity = '1';
+      updateStatsUI();
+      showScreen('screen-game');
     }
 
     function renderClues() {
-      const container = document.getElementById('clues-list');
+      const container = document.getElementById('clues-container');
       container.innerHTML = '';
 
       const clues = [
-        { label: 'Physical Attributes', text: `Hair: ${fugitive.hair_raw} | Eyes: ${fugitive.eyes_raw} | Sex: ${fugitive.sex}` },
-        { label: 'Reward Info', text: fugitive.reward_text ? sanitizeText(fugitive.reward_text) : 'No specific bounty amount listed.' },
-        { label: 'Field Office', text: fugitive.field_offices && fugitive.field_offices.length > 0 ? fugitive.field_offices.join(', ').toUpperCase() : 'General FBI Investigation' },
-        { label: 'Associated Aliases', text: fugitive.aliases && fugitive.aliases.length > 0 ? sanitizeText(fugitive.aliases.slice(0, 3).join(', ')) : 'None registered' },
-        { label: 'Redacted Summary', text: sanitizeSummary(fugitive.description) }
+        { tag: 'PHYSICAL PROFILE', text: `Sex: ${currentCase.sex} | Hair: ${currentCase.hair} | Eyes: ${currentCase.eyes}` },
+        { tag: 'BOUNTY / REWARD', text: redactText(currentCase.reward) },
+        { tag: 'FIELD OFFICE', text: currentCase.office },
+        { tag: 'KNOWN ALIASES', text: redactText(currentCase.aliases) },
+        { tag: 'SUMMARY OF OFFENSE', text: redactSummary(currentCase.summary) }
       ];
 
-      for (let i = 0; i <= currentAttempt && i < clues.length; i++) {
+      for (let i = 0; i <= attemptCount && i < clues.length; i++) {
         const div = document.createElement('div');
-        div.className = 'clue-item';
-        div.innerHTML = `<div class="clue-label">Clue ${i+1}: ${clues[i].label}</div><div>${clues[i].text}</div>`;
+        div.className = 'clue-entry';
+        div.innerHTML = `<div class="clue-tag">CLUE 0${i+1} // ${clues[i].tag}</div><div>${clues[i].text}</div>`;
         container.appendChild(div);
       }
     }
 
-    function sanitizeText(str) {
+    function redactText(str) {
       if (!str) return '';
-      let cleaned = str;
-      CRIME_CATEGORIES.forEach(cat => {
-        const words = cat.split(' ');
-        words.forEach(w => {
-          if (w.length > 3) {
-            const reg = new RegExp(w, 'gi');
-            cleaned = cleaned.replace(reg, '[REDACTED]');
+      let text = str;
+      CRIMINAL_CATEGORIES.forEach(cat => {
+        cat.split(' ').forEach(word => {
+          if (word.length > 3) {
+            const reg = new RegExp(word, 'gi');
+            text = text.replace(reg, '[REDACTED]');
           }
         });
       });
-      return cleaned;
+      return text;
     }
 
-    function sanitizeSummary(text) {
-      let sanitized = sanitizeText(text);
-      return sanitized.length > 180 ? sanitized.substring(0, 180) + '...' : sanitized;
+    function redactSummary(text) {
+      let cleaned = redactText(text);
+      return cleaned.length > 170 ? cleaned.substring(0, 170) + '...' : cleaned;
     }
 
-    function makeGuess() {
-      if (userGuessed || currentAttempt >= MAX_ATTEMPTS) return;
-
+    function submitGuess() {
       const select = document.getElementById('crime-select');
-      const selectedGuess = select.value;
+      const val = select.value;
+      if (!val) return;
 
-      if (!selectedGuess) {
-        const container = document.getElementById('main-container');
-        container.classList.add('shake');
-        setTimeout(() => container.classList.remove('shake'), 400);
-        return;
-      }
-
-      const dots = document.querySelectorAll('.dot');
-      const actualSubjects = fugitive.subjects.map(s => s.toLowerCase());
-      
-      const isCorrect = actualSubjects.some(subj => 
-        subj.includes(selectedGuess.toLowerCase()) || selectedGuess.toLowerCase().includes(subj)
-      );
+      const slots = document.querySelectorAll('.slot');
+      const actual = currentCase.subjects.map(s => s.toLowerCase());
+      const isCorrect = actual.some(a => a.includes(val.toLowerCase()) || val.toLowerCase().includes(a));
 
       if (isCorrect) {
-        dots[currentAttempt].className = 'dot correct';
-        endGame(true, false);
+        slots[attemptCount].className = 'slot correct';
+        endSession(true);
       } else {
-        dots[currentAttempt].className = 'dot wrong';
-        currentAttempt++;
+        slots[attemptCount].className = 'slot wrong';
+        attemptCount++;
 
-        if (currentAttempt < MAX_ATTEMPTS) {
-          dots[currentAttempt].className = 'dot current';
+        if (attemptCount < MAX_ATTEMPTS) {
+          slots[attemptCount].className = 'slot active';
           renderClues();
         } else {
-          endGame(false, false);
+          endSession(false);
         }
-      }
-
-      if (activeMode === 'daily') {
-        saveDailySession(isCorrect);
       }
     }
 
-    function endGame(won, isReload = false) {
-      userGuessed = true;
+    function endSession(won) {
       document.getElementById('submit-btn').disabled = true;
       document.getElementById('crime-select').disabled = true;
 
-      if (!isReload) {
-        updateStats(won);
-      }
+      updateStats(won);
 
-      const modal = document.getElementById('game-modal');
+      const modal = document.getElementById('result-modal');
       const title = document.getElementById('modal-title');
       const body = document.getElementById('modal-body');
-      const actionBtn = document.getElementById('modal-action-btn');
+      const btn = document.getElementById('modal-btn');
 
-      title.textContent = won ? 'CASE SOLVED!' : 'SUSPECT ESCAPED!';
+      title.textContent = won ? 'CASE SOLVED' : 'SUSPECT AT LARGE';
       title.style.color = won ? 'var(--correct)' : 'var(--wrong)';
-      
+
       body.innerHTML = `
-        <div style="margin-bottom: 8px;"><strong>Fugitive:</strong> ${fugitive.title}</div>
-        <div><strong>Actual Category:</strong> ${fugitive.subjects.join(', ')}</div>
+        <strong>Fugitive:</strong> ${currentCase.title}<br>
+        <strong>Primary Category:</strong> ${currentCase.subjects.join(', ')}
       `;
 
-      if (activeMode === 'unlimited') {
-        actionBtn.textContent = 'Play Next Case ➔';
-      } else {
-        actionBtn.textContent = 'Close Summary';
-      }
-
-      if (!isReload) {
-        setTimeout(() => modal.classList.add('active'), 500);
-      }
+      btn.textContent = currentMode === 'unlimited' ? 'Next Suspect ➔' : 'Close File';
+      setTimeout(() => modal.classList.add('active'), 400);
     }
 
-    function handleModalAction() {
-      closeModal();
-      if (activeMode === 'unlimited') {
+    function closeModal() {
+      document.getElementById('result-modal').classList.remove('active');
+      if (currentMode === 'unlimited') {
         startUnlimitedMode();
       }
     }
 
-    function closeModal() {
-      document.getElementById('game-modal').classList.remove('active');
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
     }
 
-    function saveDailySession(won) {
-      const sessionData = { attempt: currentAttempt, won: won, completed: true };
-      localStorage.setItem(TODAY_KEY, JSON.stringify(sessionData));
-    }
-
-    function checkExistingDailySession() {
-      const saved = localStorage.getItem(TODAY_KEY);
-      if (saved) {
-        const data = JSON.parse(saved);
-        currentAttempt = data.attempt;
-        
-        const dots = document.querySelectorAll('.dot');
-        for (let i = 0; i < currentAttempt; i++) {
-          dots[i].className = 'dot wrong';
-        }
-
-        if (data.completed) {
-          if (data.won && dots[currentAttempt]) {
-            dots[currentAttempt].className = 'dot correct';
-          }
-          endGame(data.won, true);
-        }
-      }
+    function resetTrackerUI() {
+      const slots = document.querySelectorAll('.slot');
+      slots.forEach((s, idx) => s.className = idx === 0 ? 'slot active' : 'slot');
     }
 
     function updateStats(won) {
-      if (activeMode === 'daily') {
+      if (currentMode === 'daily') {
         let stats = JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 };
         stats.played++;
         if (won) { stats.wins++; stats.streak++; } else { stats.streak = 0; }
@@ -942,25 +761,21 @@
     }
 
     function updateStatsUI() {
-      let stats = activeMode === 'daily' 
+      let stats = currentMode === 'daily' 
         ? (JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 })
         : unlimitedStats;
 
       document.getElementById('stat-played').textContent = stats.played;
       document.getElementById('stat-wins').textContent = stats.wins;
       document.getElementById('stat-streak').textContent = stats.streak;
-    }
 
-    function updateHomeStatsUI() {
-      let stats = JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 };
       document.getElementById('home-stat-played').textContent = stats.played;
       document.getElementById('home-stat-wins').textContent = stats.wins;
       document.getElementById('home-stat-streak').textContent = stats.streak;
     }
 
-    // Initialize
     populateDropdown();
-    updateHomeStatsUI();
+    updateStatsUI();
   </script>
 </body>
 </html>
