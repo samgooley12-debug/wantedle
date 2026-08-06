@@ -10,11 +10,11 @@
   <!-- SEO & OPEN GRAPH METADATA -->
   <title>Wantedle – Daily Criminal Category Guessing Game</title>
   <meta name="title" content="Wantedle – Daily Criminal Category Guessing Game" />
-  <meta name="description" content="Test your crime-solving skills in Wantedle! Analyze mugshots and progressive evidence clues to guess the FBI wanted category or subject." />
+  <meta name="description" content="Test your crime-solving skills in Wantedle! Analyze mugshots and progressive evidence clues to guess the daily subject category." />
   <meta name="keywords" content="wantedle, wantedle game, daily wordle games, crime guessing game, fbi wanted game, daily puzzle" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Wantedle – Daily Case Guessing Game" />
-  <meta property="og:description" content="Can you identify today's subject using progressive clues and evidence?" />
+  <meta property="og:description" content="Can you identify today's subject category using progressive clues and evidence?" />
 
   <style>
     :root {
@@ -157,8 +157,6 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      /* NO BLUR - Fully sharp image */
-      filter: none !important;
     }
 
     .clues-list {
@@ -175,7 +173,12 @@
       border-radius: 8px;
       font-size: 0.9rem;
       line-height: 1.4;
+      color: var(--text-muted);
+    }
+
+    .clue-item.unlocked {
       color: var(--text-main);
+      border-color: var(--accent-color);
     }
 
     .input-section {
@@ -184,18 +187,19 @@
       margin-bottom: 15px;
     }
 
-    input[type="text"] {
+    select {
       flex: 1;
       padding: 12px 16px;
       border-radius: 6px;
       border: 1px solid var(--border-color);
       background-color: #070c18;
       color: #fff;
-      font-size: 1rem;
+      font-size: 0.95rem;
       outline: none;
+      cursor: pointer;
     }
 
-    input[type="text"]:focus {
+    select:focus {
       border-color: var(--accent-color);
     }
 
@@ -260,7 +264,7 @@
     <div class="home-card">
       <h2 style="margin-bottom: 10px;">Select Game Mode</h2>
       <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 0.9rem;">
-        Analyze profile clues and mugshots to identify the subject.
+        Analyze profile clues and mugshots to select the correct category.
       </p>
       <button class="mode-btn daily" onclick="startGame('daily')">Play Daily Case</button>
       <button class="mode-btn unlimited" onclick="startGame('unlimited')">Play Unlimited Mode</button>
@@ -275,13 +279,30 @@
       </div>
 
       <div class="clues-list" id="clues-container">
-        <div class="clue-item" id="clue-1">Field Office: Loading...</div>
-        <div class="clue-item" id="clue-2">Profile Note: Locked</div>
-        <div class="clue-item" id="clue-3">Status / Details: Locked</div>
+        <div class="clue-item unlocked" id="clue-1">Clue 1: Field Office - Loading...</div>
+        <div class="clue-item" id="clue-2">🔒 Clue 2: Make 1st guess to unlock</div>
+        <div class="clue-item" id="clue-3">🔒 Clue 3: Make 2nd guess to unlock</div>
       </div>
 
       <div class="input-section" id="controls">
-        <input type="text" id="guess-input" placeholder="Enter name or subject..." autocomplete="off" />
+        <select id="category-select">
+          <option value="" disabled selected>-- Select Category --</option>
+          <option value="Cyber Crime">Cyber Crime</option>
+          <option value="Counterterrorism">Counterterrorism</option>
+          <option value="White-Collar Crime">White-Collar Crime</option>
+          <option value="Bank Robbery">Bank Robbery</option>
+          <option value="Art Crime">Art Crime</option>
+          <option value="Organized Crime">Organized Crime</option>
+          <option value="Human Trafficking">Human Trafficking</option>
+          <option value="Violent Crimes">Violent Crimes</option>
+          <option value="Criminal Enterprise">Criminal Enterprise</option>
+          <option value="Counterintelligence">Counterintelligence</option>
+          <option value="Public Corruption">Public Corruption</option>
+          <option value="Civil Rights">Civil Rights</option>
+          <option value="Indian Country Crimes">Indian Country Crimes</option>
+          <option value="Seeking Information">Seeking Information</option>
+          <option value="Special Interest">Special Interest</option>
+        </select>
         <button id="submit-btn" class="action-btn" onclick="makeGuess()">Guess</button>
       </div>
 
@@ -298,13 +319,14 @@
   <script>
     let currentMode = 'daily';
     let currentSubject = null;
+    let actualCategory = "";
     let allSubjects = [];
     let attempts = 0;
     const maxAttempts = 5;
 
-    // Filter out giveaway keywords from clues
+    // Filter out giveaway terms dynamically
     function cleanText(text) {
-      if (!text) return "Information withheld for investigation.";
+      if (!text) return "Information withheld for active investigation.";
       return text
         .replace(/violent\s*crimes?/gi, "Subject Profile")
         .replace(/crimes?/gi, "Incident")
@@ -327,7 +349,7 @@
     }
 
     function updateStats(won) {
-      if (currentMode !== 'daily') return; // Stats only track for daily mode
+      if (currentMode !== 'daily') return;
       let streak = parseInt(localStorage.getItem('wantedle_streak') || 0);
       let played = parseInt(localStorage.getItem('wantedle_played') || 0);
       
@@ -361,14 +383,15 @@
       document.getElementById('home-screen').classList.remove('active');
       document.getElementById('game-screen').classList.add('active');
       document.getElementById('next-btn').style.display = 'none';
-      document.getElementById('guess-input').disabled = false;
+      document.getElementById('category-select').disabled = false;
+      document.getElementById('category-select').selectedIndex = 0;
       document.getElementById('submit-btn').disabled = false;
       document.getElementById('status').innerText = '';
       document.getElementById('attempts').innerText = `Attempts: 0 / ${maxAttempts}`;
 
       const items = await fetchSubjects();
       if (!items.length) {
-        document.getElementById('status').innerText = "Error loading cases. Please check your connection.";
+        document.getElementById('status').innerText = "Error loading cases. Please check connection.";
         return;
       }
 
@@ -381,59 +404,86 @@
         const index = Math.abs(hash) % items.length;
         currentSubject = items[index];
       } else {
-        // Unlimited Mode: Select random subject
         const randomIndex = Math.floor(Math.random() * items.length);
         currentSubject = items[randomIndex];
       }
+
+      // Determine subject category
+      actualCategory = currentSubject.subjects && currentSubject.subjects.length > 0 
+        ? currentSubject.subjects[0] 
+        : "Violent Crimes";
 
       setupGameUI();
     }
 
     function setupGameUI() {
-      // Set image (Sharp, no blur)
+      // Set image
       const imgElement = document.getElementById('subject-img');
       imgElement.src = currentSubject.images[0].original || currentSubject.images[0].large;
 
-      // Populate Cleaned Clues
-      document.getElementById('clue-1').innerText = `Field Office: ${currentSubject.field_offices ? currentSubject.field_offices.join(', ') : 'Central Office'}`;
-      document.getElementById('clue-2').innerText = `Profile Note: ${cleanText(currentSubject.description || currentSubject.subjects?.[0])}`;
-      document.getElementById('clue-3').innerText = `Status / Details: ${cleanText(currentSubject.caution || currentSubject.details || 'Active File')}`;
+      // Clue 1 visible initially
+      const office = currentSubject.field_offices ? currentSubject.field_offices.join(', ') : 'Central Office';
+      document.getElementById('clue-1').innerText = `Clue 1 (Field Office): ${office}`;
+      
+      // Clues 2 & 3 start locked
+      document.getElementById('clue-2').className = "clue-item";
+      document.getElementById('clue-2').innerText = "🔒 Clue 2: Make 1st guess to unlock";
+
+      document.getElementById('clue-3').className = "clue-item";
+      document.getElementById('clue-3').innerText = "🔒 Clue 3: Make 2nd guess to unlock";
+    }
+
+    function revealClues() {
+      if (attempts === 1) {
+        const c2 = document.getElementById('clue-2');
+        c2.className = "clue-item unlocked";
+        c2.innerText = `Clue 2 (Profile Note): ${cleanText(currentSubject.description || 'No public profile note available.')}`;
+      } else if (attempts === 2) {
+        const c3 = document.getElementById('clue-3');
+        c3.className = "clue-item unlocked";
+        c3.innerText = `Clue 3 (Details): ${cleanText(currentSubject.caution || currentSubject.details || 'Active investigation record.')}`;
+      }
     }
 
     function makeGuess() {
-      const input = document.getElementById('guess-input');
-      const userGuess = input.value.trim().toLowerCase();
+      const select = document.getElementById('category-select');
+      const userGuess = select.value;
       const status = document.getElementById('status');
 
-      if (!userGuess || !currentSubject) return;
+      if (!userGuess) {
+        status.className = "status-message error";
+        status.innerText = "Please select a category from the dropdown!";
+        return;
+      }
 
       attempts++;
       document.getElementById('attempts').innerText = `Attempts: ${attempts} / ${maxAttempts}`;
 
-      const targetTitle = currentSubject.title.toLowerCase();
+      // Unlock next clue step-by-step
+      revealClues();
 
-      if (targetTitle.includes(userGuess) || userGuess.includes(targetTitle)) {
+      if (userGuess.toLowerCase() === actualCategory.toLowerCase()) {
         status.className = "status-message success";
-        status.innerText = `Correct! Subject identified: ${currentSubject.title}`;
+        status.innerText = `Correct! Category: ${actualCategory}`;
         updateStats(true);
         endGame();
       } else {
         if (attempts >= maxAttempts) {
           status.className = "status-message error";
-          status.innerText = `Case Unsolved. Subject was: ${currentSubject.title}`;
+          status.innerText = `Case Unsolved. Category was: ${actualCategory}`;
           updateStats(false);
           endGame();
         } else {
           status.className = "status-message error";
-          status.innerText = "Incorrect. Try again!";
+          status.innerText = "Incorrect category. Next clue unlocked!";
         }
       }
 
-      input.value = '';
+      select.selectedIndex = 0;
     }
 
     function endGame() {
-      document.getElementById('guess-input').disabled = true;
+      document.getElementById('category-select').disabled = true;
       document.getElementById('submit-btn').disabled = true;
       if (currentMode === 'unlimited') {
         document.getElementById('next-btn').style.display = 'block';
