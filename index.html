@@ -72,7 +72,7 @@
     .screen { display: none; }
     .screen.active { display: block; }
 
-    /* Home Buttons */
+    /* Home Menu */
     .menu-stack {
       display: flex;
       flex-direction: column;
@@ -115,10 +115,10 @@
       color: var(--muted);
     }
 
-    /* Face-Focused Portrait Stage */
+    /* Face Mugshot Framing */
     .image-stage {
-      width: 220px;
-      height: 220px;
+      width: 200px;
+      height: 200px;
       margin: 0 auto 16px auto;
       background: #000;
       border-radius: 50%;
@@ -132,7 +132,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 20%;
+      object-position: center 20%; /* Zooms strictly onto suspect's face */
     }
 
     .stage-overlay {
@@ -151,32 +151,32 @@
       border: 1px solid var(--border);
     }
 
-    /* Dynamic Clue Card */
+    /* Clue Box */
     .clue-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 16px;
+      padding: 18px;
       margin-bottom: 16px;
       min-height: 110px;
     }
 
     .clue-header {
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       font-weight: 800;
       color: var(--accent);
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .clue-content {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: var(--text);
       line-height: 1.5;
     }
 
-    /* Tracker Squares */
+    /* Track Progress Squares */
     .tracker-bar {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -195,7 +195,7 @@
     .track-square.correct { background: var(--correct); }
     .track-square.active { background: var(--accent); }
 
-    /* Dropdown Pick Container */
+    /* Dropdown Selection Bar */
     .input-wrapper {
       margin-bottom: 20px;
     }
@@ -248,7 +248,7 @@
     .btn-submit:hover:not(:disabled) { opacity: 0.9; }
     .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* Metrics Row */
+    /* Stats Display */
     .stats-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -271,7 +271,7 @@
       font-weight: 600;
     }
 
-    /* Modal */
+    /* End Screen Modal */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -325,12 +325,12 @@
       <div class="menu-stack">
         <button class="btn-mode primary" onclick="launchMode('daily')">
           <div class="btn-mode-title">🎯 Daily Case</div>
-          <div class="btn-mode-desc">Analyze progressive clues to identify today's primary crime category.</div>
+          <div class="btn-mode-desc">Analyze clues to identify today's primary crime category.</div>
         </button>
 
         <button class="btn-mode" onclick="launchMode('unlimited')">
           <div class="btn-mode-title">♾️ Unlimited Mode</div>
-          <div class="btn-mode-desc">Play endless randomized cases from official federal archives.</div>
+          <div class="btn-mode-desc">Play endless cases with clear, progressive evidence files.</div>
         </button>
       </div>
 
@@ -343,20 +343,20 @@
 
     <!-- LOADER -->
     <div id="screen-loader" class="screen loader">
-      Loading Wantedle Case File...
+      Preparing Wantedle Case Files...
     </div>
 
     <!-- GAMEPLAY SCREEN -->
     <div id="screen-game" class="screen">
 
       <div class="image-stage">
-        <img id="suspect-img" src="" alt="Suspect Face Portrait">
+        <img id="suspect-img" src="" alt="Suspect Face Mugshot">
         <div class="stage-overlay" id="attempt-indicator">CLUE 1/5</div>
       </div>
 
       <div class="clue-card">
-        <div class="clue-header" id="clue-title">EVIDENCE FILE // CLUE 1</div>
-        <div class="clue-content" id="clue-body">Synthesizing intelligence...</div>
+        <div class="clue-header" id="clue-title">CLUE 1</div>
+        <div class="clue-content" id="clue-body">Reviewing case notes...</div>
       </div>
 
       <div class="tracker-bar">
@@ -370,7 +370,7 @@
       <div class="input-wrapper">
         <div class="picker-bar">
           <select id="crime-select">
-            <option value="" disabled selected>Select a Category...</option>
+            <option value="" disabled selected>Select 1 of 15 categories...</option>
           </select>
           <button class="btn-submit" id="submit-btn" onclick="submitGuess()">SUBMIT</button>
         </div>
@@ -389,14 +389,14 @@
   <!-- RESULT MODAL -->
   <div class="modal-backdrop" id="modal">
     <div class="modal-card">
-      <div class="modal-title" id="modal-title">ANALYSIS COMPLETE</div>
+      <div class="modal-title" id="modal-title">CASE CLOSED</div>
       <div class="modal-body" id="modal-body"></div>
       <button class="btn-submit" style="width: 100%; height: 44px;" onclick="closeModal()">CONTINUE</button>
     </div>
   </div>
 
   <script>
-    // EXACT 15 CATEGORIES
+    // EXACT 15 EASY-TO-UNDERSTAND CATEGORIES
     const MASTER_15_CATEGORIES = [
       "Bank Robbery",
       "Cyber Crime",
@@ -424,7 +424,7 @@
 
     function populateDropdown() {
       const select = document.getElementById('crime-select');
-      select.innerHTML = '<option value="" disabled selected>Select a Category...</option>';
+      select.innerHTML = '<option value="" disabled selected>Select 1 of 15 categories...</option>';
       MASTER_15_CATEGORIES.forEach(cat => {
         const opt = document.createElement('option');
         opt.value = cat;
@@ -445,9 +445,10 @@
           }
         }
       } catch (e) {
-        console.warn("API fallback applied.", e);
+        console.warn("API offline - applying curated database.", e);
       }
 
+      // Guaranteed offline backup with real photo URLs
       if (criminalPool.length === 0) {
         criminalPool = [
           {
@@ -455,20 +456,22 @@
             title: "Ruja Ignatova",
             thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/ruja-ignatova/@@images/image/thumb&w=300&h=300&fit=cover",
             category: "White-Collar & Fraud",
-            office: "NEW YORK HQ",
-            bounty: "$5,000,000 USD Bounty Offered",
-            summary: "Wanted for leading a massive international financial scheme that defrauded investors of billions of dollars globally.",
-            tactics: "Utilized fake digital tokens, multi-level marketing structures, and offshore accounts to move investor capital."
+            region: "New York Area",
+            bounty: "$5,000,000 Reward Offered",
+            howTheyOperate: "Used fake digital investment tokens and offshore bank accounts to take money from thousands of victims.",
+            targets: "Investors, retirement accounts, and international financial institutions.",
+            fullStory: "Accused of running a massive fake cryptocurrency company that stole over four billion dollars from investors worldwide before going into hiding."
           },
           {
             id: "bhadreshkumar-patel",
             title: "Bhadreshkumar Chetanbhai Patel",
             thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/bhadreshkumar-chetanbhai-patel/@@images/image/thumb&w=300&h=300&fit=cover",
             category: "Murder / Homicide",
-            office: "BALTIMORE HQ",
-            bounty: "$250,000 USD Bounty Offered",
-            summary: "Wanted for violently attacking and taking the life of a coworker inside a commercial workplace facility.",
-            tactics: "Fled immediately following a lethal assault, actively evading federal capture."
+            region: "Baltimore & Maryland Area",
+            bounty: "$250,000 Reward Offered",
+            howTheyOperate: "Used a sharp weapon during a sudden altercation inside a commercial building before escaping on foot.",
+            targets: "A coworker working the night shift inside a retail facility.",
+            fullStory: "Wanted for striking and killing his coworker inside a donut shop during a night shift before fleeing the scene."
           }
         ];
       }
@@ -478,10 +481,10 @@
       const EXCLUDE = ['missing', 'kidnap', 'victim', 'deceased', 'captured', 'located', 'seeking info - missing'];
 
       return items.filter(item => {
-        // MUST HAVE A VALID REAL PORTRAIT IMAGE
+        // STRICT MUGSHOT / PORTRAIT FILTER: Must have a genuine image
         if (!item.images || item.images.length === 0) return false;
         const img = item.images[0].thumb || item.images[0].large;
-        if (!img || img.includes('silhouette') || img.includes('no_image')) return false;
+        if (!img || img.includes('silhouette') || img.includes('no_image') || img.includes('default')) return false;
 
         if (!item.title || !item.subjects || item.subjects.length === 0) return false;
         const subjStr = item.subjects.map(s => s.toLowerCase()).join(' ');
@@ -497,37 +500,43 @@
 
         const mappedCategory = mapTo15Categories(item.subjects);
 
-        const cleanOffice = (item.field_offices && item.field_offices.length > 0)
-          ? item.field_offices.join(', ').toUpperCase() + ' FIELD DIVISION'
-          : 'FEDERAL BUREAU HQ';
+        // CLEAR, ENGAGING ENGLISH CLUES — ZERO "UNKNOWN" / ZERO CRYPTIC CODES
+        const region = (item.field_offices && item.field_offices.length > 0)
+          ? item.field_offices[0].charAt(0).toUpperCase() + item.field_offices[0].slice(1) + " Division"
+          : "U.S. Federal Jurisdiction";
 
-        const cleanBounty = (item.reward_text && item.reward_text.length > 8)
+        const bounty = (item.reward_text && item.reward_text.length > 8 && !item.reward_text.toLowerCase().includes('unknown'))
           ? item.reward_text
-          : 'Standard FBI Information Reward Offered';
+          : "Official Federal Cash Reward Offered";
 
-        let cleanSummary = (item.description || item.caution || item.details || '')
+        let cleanText = (item.description || item.caution || item.details || '')
           .replace(/<[^>]*>?/gm, '').trim();
 
-        if (cleanSummary.length < 20) {
-          cleanSummary = `Suspect is currently indicted by federal prosecutors in connection with major illegal activities falling under ${mappedCategory}.`;
+        if (!cleanText || cleanText.length < 25 || cleanText.toLowerCase().includes('unknown')) {
+          cleanText = `Suspect is actively sought in connection with serious federal law violations regarding ${mappedCategory}.`;
         }
 
-        let cleanTactics = (item.remarks || item.warning_message || '')
+        let tactics = (item.remarks || item.warning_message || '')
           .replace(/<[^>]*>?/gm, '').trim();
 
-        if (cleanTactics.length < 15) {
-          cleanTactics = `Known to use falsified documentation and covert communications to avoid law enforcement detection.`;
+        if (!tactics || tactics.length < 15 || tactics.toLowerCase().includes('unknown')) {
+          tactics = `Known to use false identity documents, travel under fake names, and avoid public places to hide from police.`;
         }
+
+        const howTheyOperate = tactics;
+        const targets = `Public facilities, individuals, or institutions affected by ${mappedCategory}.`;
+        const fullStory = cleanText;
 
         return {
           id: item.uid || item.title,
           title: item.title,
           thumbUrl: fastImg,
           category: mappedCategory,
-          office: cleanOffice,
-          bounty: cleanBounty,
-          summary: cleanSummary,
-          tactics: cleanTactics
+          region: region,
+          bounty: bounty,
+          howTheyOperate: howTheyOperate,
+          targets: targets,
+          fullStory: fullStory
         };
       });
     }
@@ -536,8 +545,8 @@
       const text = subjects.join(' ').toLowerCase();
 
       if (text.includes('cyber') || text.includes('computer') || text.includes('ransomware') || text.includes('hacker')) return "Cyber Crime";
-      if (text.includes('bank') || text.includes('robbery')) return "Bank Robbery";
-      if (text.includes('murder') || text.includes('homicide') || text.includes('death')) return "Murder / Homicide";
+      if (text.includes('bank') || text.includes('robbery') || text.includes('teller')) return "Bank Robbery";
+      if (text.includes('murder') || text.includes('homicide') || text.includes('death') || text.includes('killed')) return "Murder / Homicide";
       if (text.includes('white-collar') || text.includes('fraud') || text.includes('corporate') || text.includes('financial') || text.includes('sec')) return "White-Collar & Fraud";
       if (text.includes('drug') || text.includes('narcotics') || text.includes('cocaine') || text.includes('heroin')) return "Drug Trafficking";
       if (text.includes('human') || text.includes('trafficking') || text.includes('smuggling')) return "Human Trafficking";
@@ -585,30 +594,30 @@
       showScreen('screen-game');
     }
 
-    // Progressive Clue Hierarchy: Very Hard -> Moderate -> Easy
+    // PROGRESSIVE CLUE STRUCTURE: Hard -> Solvable on Clue 5
     function renderCurrentClue() {
       document.getElementById('attempt-indicator').textContent = `CLUE ${attemptCount + 1}/5`;
 
       const clues = [
         {
-          title: "CLUE 01 // FBI DIVISION & OPERATIONAL REGION",
-          body: `<strong>INVESTIGATING OFFICE:</strong> ${currentCase.office}<br><strong>STATUS:</strong> Active Federal Warrant Issued`
+          title: "CLUE 1 // LOCATION & REWARD (HARD)",
+          body: `<strong>MAIN LOCATION:</strong> ${currentCase.region}<br><strong>REWARD STATUS:</strong> ${currentCase.bounty}`
         },
         {
-          title: "CLUE 02 // REWARD & GENERAL MODUS OPERANDI",
-          body: `<strong>BOUNTY:</strong> ${currentCase.bounty}<br><strong>TACTICAL NOTES:</strong> ${maskKeywords(currentCase.tactics, 3)}`
+          title: "CLUE 2 // HOW THEY OPERATE (MEDIUM-HARD)",
+          body: `<strong>SUSPECT BEHAVIOR:</strong> ${maskKeywords(currentCase.howTheyOperate, 3)}`
         },
         {
-          title: "CLUE 03 // TARGET & OPERATIONAL TACTICS",
-          body: `<strong>METHODOLOGY:</strong> ${maskKeywords(currentCase.summary.substring(0, 90) + '...', 2)}`
+          title: "CLUE 3 // TARGETS & METHODS (MEDIUM)",
+          body: `<strong>TYPICAL TARGETS:</strong> ${maskKeywords(currentCase.targets, 2)}`
         },
         {
-          title: "CLUE 04 // CASE DETAILS & SCENARIO",
-          body: `<strong>INVESTIGATION BRIEF:</strong> ${maskKeywords(currentCase.summary, 1)}`
+          title: "CLUE 4 // WHAT HAPPENED (EASY)",
+          body: `<strong>CASE SUMMARY:</strong> ${maskKeywords(currentCase.fullStory, 1)}`
         },
         {
-          title: "CLUE 05 // DIRECT CASE STATEMENT (FINAL CLUE)",
-          body: `<strong>SUMMARY STATEMENT:</strong> ${maskCategoryOnly(currentCase.summary)}`
+          title: "CLUE 5 // FULL INCIDENT STORY (GIVE-AWAY)",
+          body: `<strong>FULL CASE STORY:</strong> ${maskCategoryOnly(currentCase.fullStory)}`
         }
       ];
 
@@ -616,38 +625,40 @@
       document.getElementById('clue-body').innerHTML = clues[attemptCount].body;
     }
 
+    // Mask specific giveaway words without creating messy text
     function maskKeywords(text, level) {
       if (!text) return '';
       let out = text;
 
-      const keywords = [
-        'bank', 'robbery', 'robber', 'cyber', 'computer', 'fraud', 'wire', 'scheme',
-        'murder', 'homicide', 'killed', 'shot', 'drug', 'narcotics', 'cocaine',
+      const primary = [
+        'bank', 'robbery', 'robber', 'cyber', 'computer', 'hacker', 'fraud', 'wire', 'scheme',
+        'murder', 'homicide', 'killed', 'shot', 'drug', 'narcotics', 'cocaine', 'heroin',
         'terrorism', 'terrorist', 'laundering', 'money', 'racketeering', 'extortion',
         'weapon', 'firearm', 'guns', 'trafficking', 'bribe', 'corruption', 'stolen', 'art'
       ];
 
-      keywords.forEach(w => {
+      primary.forEach(w => {
         const reg = new RegExp('\\b' + w + '\\b', 'gi');
         out = out.replace(reg, '████');
       });
 
       if (level >= 2) {
-        out = out.replace(/\b(victim|assault|cartel|company|bank|account|financial|investor)\b/gi, '████');
+        out = out.replace(/\b(victim|assault|cartel|company|bank|account|financial|investor|stole|weapon)\b/gi, '████');
       }
 
       if (level >= 3) {
-        out = out.replace(/\b(federal|police|arrest|fled|stole|obtained)\b/gi, '████');
+        out = out.replace(/\b(police|arrest|fled|obtained|cash|vault|computer)\b/gi, '████');
       }
 
       return out;
     }
 
+    // Hide only words that match the answer category
     function maskCategoryOnly(text) {
       let out = text;
       const targetCat = currentCase.category.toLowerCase();
       targetCat.split(' ').forEach(w => {
-        if (w.length > 3) {
+        if (w.length > 2 && w !== '&' && w !== '/') {
           const reg = new RegExp('\\b' + w + '\\b', 'gi');
           out = out.replace(reg, '████');
         }
@@ -690,13 +701,13 @@
       const title = document.getElementById('modal-title');
       const body = document.getElementById('modal-body');
 
-      title.textContent = won ? 'CASE SOLVED!' : 'IDENTIFICATION FAILED';
+      title.textContent = won ? 'CORRECT CATEGORY!' : 'OUT OF ATTEMPTS';
       title.style.color = won ? 'var(--correct)' : 'var(--wrong)';
 
       body.innerHTML = `
-        <strong>Fugitive:</strong> ${currentCase.title}<br>
+        <strong>Suspect:</strong> ${currentCase.title}<br>
         <strong>Correct Category:</strong> ${currentCase.category}<br><br>
-        <em>${currentCase.summary}</em>
+        <em>${currentCase.fullStory}</em>
       `;
 
       setTimeout(() => modal.classList.add('active'), 300);
