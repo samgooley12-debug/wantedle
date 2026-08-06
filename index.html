@@ -3,7 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WANTEDLE — Guess the Criminal Category</title>
+
+  <!-- ========================================== -->
+  <!-- GOOGLE SEO & METADATA                      -->
+  <!-- ========================================== -->
+  <title>Wantedle — Daily Criminal Category Guessing Game</title>
+  <meta name="title" content="Wantedle — Daily Criminal Category Guessing Game">
+  <meta name="description" content="Test your crime-solving skills in Wantedle! Analyze mugshots and progressive evidence clues to guess the correct criminal category in 5 tries. Play daily or unlimited.">
+  <meta name="keywords" content="wantedle, wantedle game, daily wordle games, crime guessing game, fbi wanted game, daily puzzle, mugshot game">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Wantedle Game">
+  <link rel="canonical" href="https://yourdomain.com/">
+
+  <!-- Open Graph / Facebook / WhatsApp -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yourdomain.com/">
+  <meta property="og:title" content="Wantedle — Guess the Criminal Category">
+  <meta property="og:description" content="Can you guess the crime category from the suspect's mugshot and progressive case files?">
+  <meta property="og:image" content="https://yourdomain.com/og-image.png">
+
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://yourdomain.com/">
+  <meta name="twitter:title" content="Wantedle — Guess the Criminal Category">
+  <meta name="twitter:description" content="Can you guess the crime category from the suspect's mugshot and progressive case files?">
+  <meta name="twitter:image" content="https://yourdomain.com/og-image.png">
+
+  <!-- Structured Data Schema for Google indexing -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Wantedle",
+    "operatingSystem": "All",
+    "applicationCategory": "GameApplication",
+    "genre": "Puzzle",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "Daily crime category guessing game based on real case files and progressive mugshot reveals."
+  }
+  </script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -72,7 +114,7 @@
     .screen { display: none; }
     .screen.active { display: block; }
 
-    /* Home Menu */
+    /* Home Menu Stack */
     .menu-stack {
       display: flex;
       flex-direction: column;
@@ -115,7 +157,7 @@
       color: var(--muted);
     }
 
-    /* Face Mugshot Framing */
+    /* Face Mugshot Framing & Dynamic Blur */
     .image-stage {
       width: 200px;
       height: 200px;
@@ -132,7 +174,8 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 20%; /* Zooms strictly onto suspect's face */
+      object-position: center 20%;
+      transition: filter 0.5s ease;
     }
 
     .stage-overlay {
@@ -271,7 +314,7 @@
       font-weight: 600;
     }
 
-    /* End Screen Modal */
+    /* Modal & Share Button */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -299,16 +342,42 @@
     }
 
     .modal-title { font-size: 1.4rem; font-weight: 900; margin-bottom: 12px; }
+    
     .modal-body {
       background: var(--bg);
       border: 1px solid var(--border);
       padding: 14px;
       border-radius: 6px;
       font-size: 0.85rem;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       text-align: left;
       line-height: 1.5;
     }
+
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-share {
+      background: var(--correct);
+      border: none;
+      color: #fff;
+      height: 44px;
+      border-radius: 6px;
+      font-weight: 800;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-share:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
@@ -325,12 +394,12 @@
       <div class="menu-stack">
         <button class="btn-mode primary" onclick="launchMode('daily')">
           <div class="btn-mode-title">🎯 Daily Case</div>
-          <div class="btn-mode-desc">Analyze clues to identify today's primary crime category.</div>
+          <div class="btn-mode-desc">Analyze mugshots and progressive crime narratives to guess today's category.</div>
         </button>
 
         <button class="btn-mode" onclick="launchMode('unlimited')">
           <div class="btn-mode-title">♾️ Unlimited Mode</div>
-          <div class="btn-mode-desc">Play endless cases with clear, progressive evidence files.</div>
+          <div class="btn-mode-desc">Play endless case files with dynamic image unblurring.</div>
         </button>
       </div>
 
@@ -350,7 +419,7 @@
     <div id="screen-game" class="screen">
 
       <div class="image-stage">
-        <img id="suspect-img" src="" alt="Suspect Face Mugshot">
+        <img id="suspect-img" src="" alt="Suspect Mugshot">
         <div class="stage-overlay" id="attempt-indicator">CLUE 1/5</div>
       </div>
 
@@ -391,12 +460,17 @@
     <div class="modal-card">
       <div class="modal-title" id="modal-title">CASE CLOSED</div>
       <div class="modal-body" id="modal-body"></div>
-      <button class="btn-submit" style="width: 100%; height: 44px;" onclick="closeModal()">CONTINUE</button>
+      <div class="modal-actions">
+        <button class="btn-share" onclick="copyShareResults()" id="share-btn">
+          📋 SHARE SCORE GRID
+        </button>
+        <button class="btn-submit" style="height: 44px;" onclick="closeModal()">CONTINUE</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // EXACT 15 EASY-TO-UNDERSTAND CATEGORIES
+    // EXACT 15 CATEGORIES
     const MASTER_15_CATEGORIES = [
       "Bank Robbery",
       "Cyber Crime",
@@ -421,6 +495,10 @@
     const MAX_ATTEMPTS = 5;
     let currentMode = 'daily';
     let unlimitedStats = { played: 0, wins: 0, streak: 0 };
+    let guessHistory = [];
+
+    // PROGRESSIVE UNBLUR LEVELS (Pixels)
+    const BLUR_LEVELS = [22, 14, 8, 3, 0];
 
     function populateDropdown() {
       const select = document.getElementById('crime-select');
@@ -445,10 +523,9 @@
           }
         }
       } catch (e) {
-        console.warn("API offline - applying curated database.", e);
+        console.warn("API offline - applying curated fallback database.", e);
       }
 
-      // Guaranteed offline backup with real photo URLs
       if (criminalPool.length === 0) {
         criminalPool = [
           {
@@ -457,21 +534,23 @@
             thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/ruja-ignatova/@@images/image/thumb&w=300&h=300&fit=cover",
             category: "White-Collar & Fraud",
             region: "New York Area",
-            bounty: "$5,000,000 Reward Offered",
-            howTheyOperate: "Used fake digital investment tokens and offshore bank accounts to take money from thousands of victims.",
-            targets: "Investors, retirement accounts, and international financial institutions.",
-            fullStory: "Accused of running a massive fake cryptocurrency company that stole over four billion dollars from investors worldwide before going into hiding."
+            bounty: "$5,000,000 Cash Reward Offered",
+            strategy: "Operated an elaborate corporate scheme collecting funds from investors worldwide using fake financial products.",
+            execution: "Promoted fake digital coins, manipulated internal value ledgers, and transferred funds through shell bank accounts.",
+            detailedStory: "Accused of orchestrating a multi-billion dollar financial scheme that defrauded investors across dozens of countries.",
+            fullStory: "Wanted for leading a massive fake cryptocurrency organization that stole over 4 billion dollars before she disappeared."
           },
           {
             id: "bhadreshkumar-patel",
             title: "Bhadreshkumar Chetanbhai Patel",
             thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/bhadreshkumar-chetanbhai-patel/@@images/image/thumb&w=300&h=300&fit=cover",
             category: "Murder / Homicide",
-            region: "Baltimore & Maryland Area",
-            bounty: "$250,000 Reward Offered",
-            howTheyOperate: "Used a sharp weapon during a sudden altercation inside a commercial building before escaping on foot.",
-            targets: "A coworker working the night shift inside a retail facility.",
-            fullStory: "Wanted for striking and killing his coworker inside a donut shop during a night shift before fleeing the scene."
+            region: "Baltimore & Maryland Division",
+            bounty: "$250,000 Cash Reward Offered",
+            strategy: "Engaged in a sudden violent violent encounter with a coworker inside a commercial workplace after hours.",
+            execution: "Used a sharp instrument to inflict lethal injury during a night shift before quickly leaving the facility.",
+            detailedStory: "Attacked and killed a fellow employee inside a shop before escaping on foot into a nearby area.",
+            fullStory: "Wanted for striking and killing his coworker inside a donut shop during a night shift before fleeing law enforcement."
           }
         ];
       }
@@ -481,7 +560,7 @@
       const EXCLUDE = ['missing', 'kidnap', 'victim', 'deceased', 'captured', 'located', 'seeking info - missing'];
 
       return items.filter(item => {
-        // STRICT MUGSHOT / PORTRAIT FILTER: Must have a genuine image
+        // STRICT MUGSHOT FILTER: Only genuine mugshots/portraits
         if (!item.images || item.images.length === 0) return false;
         const img = item.images[0].thumb || item.images[0].large;
         if (!img || img.includes('silhouette') || img.includes('no_image') || img.includes('default')) return false;
@@ -500,7 +579,6 @@
 
         const mappedCategory = mapTo15Categories(item.subjects);
 
-        // CLEAR, ENGAGING ENGLISH CLUES — ZERO "UNKNOWN" / ZERO CRYPTIC CODES
         const region = (item.field_offices && item.field_offices.length > 0)
           ? item.field_offices[0].charAt(0).toUpperCase() + item.field_offices[0].slice(1) + " Division"
           : "U.S. Federal Jurisdiction";
@@ -509,23 +587,19 @@
           ? item.reward_text
           : "Official Federal Cash Reward Offered";
 
-        let cleanText = (item.description || item.caution || item.details || '')
+        let text = (item.description || item.caution || item.details || '')
           .replace(/<[^>]*>?/gm, '').trim();
 
-        if (!cleanText || cleanText.length < 25 || cleanText.toLowerCase().includes('unknown')) {
-          cleanText = `Suspect is actively sought in connection with serious federal law violations regarding ${mappedCategory}.`;
+        if (!text || text.length < 25 || text.toLowerCase().includes('unknown')) {
+          text = `Suspect is actively sought in connection with major federal law violations involving ${mappedCategory}.`;
         }
 
         let tactics = (item.remarks || item.warning_message || '')
           .replace(/<[^>]*>?/gm, '').trim();
 
         if (!tactics || tactics.length < 15 || tactics.toLowerCase().includes('unknown')) {
-          tactics = `Known to use false identity documents, travel under fake names, and avoid public places to hide from police.`;
+          tactics = `Known to move across jurisdictions, use altered identity papers, and evade authorities.`;
         }
-
-        const howTheyOperate = tactics;
-        const targets = `Public facilities, individuals, or institutions affected by ${mappedCategory}.`;
-        const fullStory = cleanText;
 
         return {
           id: item.uid || item.title,
@@ -534,9 +608,10 @@
           category: mappedCategory,
           region: region,
           bounty: bounty,
-          howTheyOperate: howTheyOperate,
-          targets: targets,
-          fullStory: fullStory
+          strategy: tactics,
+          execution: `Involved actions and methods directed toward targets associated with ${mappedCategory}.`,
+          detailedStory: text.substring(0, 140) + '...',
+          fullStory: text
         };
       });
     }
@@ -582,11 +657,13 @@
 
     function setupGame() {
       attemptCount = 0;
+      guessHistory = [];
       document.getElementById('submit-btn').disabled = false;
       document.getElementById('crime-select').disabled = false;
       document.getElementById('crime-select').selectedIndex = 0;
 
-      document.getElementById('suspect-img').src = currentCase.thumbUrl;
+      const imgEl = document.getElementById('suspect-img');
+      imgEl.src = currentCase.thumbUrl;
 
       renderCurrentClue();
       updateTracker();
@@ -594,29 +671,33 @@
       showScreen('screen-game');
     }
 
-    // PROGRESSIVE CLUE STRUCTURE: Hard -> Solvable on Clue 5
+    // PROGRESSIVE CRIME NARRATIVE CLUES
     function renderCurrentClue() {
       document.getElementById('attempt-indicator').textContent = `CLUE ${attemptCount + 1}/5`;
 
+      // Apply Progressive Blur to Mugshot
+      const imgEl = document.getElementById('suspect-img');
+      imgEl.style.filter = `blur(${BLUR_LEVELS[attemptCount]}px)`;
+
       const clues = [
         {
-          title: "CLUE 1 // LOCATION & REWARD (HARD)",
-          body: `<strong>MAIN LOCATION:</strong> ${currentCase.region}<br><strong>REWARD STATUS:</strong> ${currentCase.bounty}`
+          title: "CLUE 1 // REGION & REWARD",
+          body: `<strong>MAIN REGION:</strong> ${currentCase.region}<br><strong>REWARD OFFERED:</strong> ${currentCase.bounty}`
         },
         {
-          title: "CLUE 2 // HOW THEY OPERATE (MEDIUM-HARD)",
-          body: `<strong>SUSPECT BEHAVIOR:</strong> ${maskKeywords(currentCase.howTheyOperate, 3)}`
+          title: "CLUE 2 // GENERAL CRIME SETUP & STRATEGY",
+          body: `<strong>CRIME SETUP:</strong> ${maskKeywords(currentCase.strategy, 3)}`
         },
         {
-          title: "CLUE 3 // TARGETS & METHODS (MEDIUM)",
-          body: `<strong>TYPICAL TARGETS:</strong> ${maskKeywords(currentCase.targets, 2)}`
+          title: "CLUE 3 // TACTICAL EXECUTION & METHODOLOGY",
+          body: `<strong>HOW CRIME WAS CARRIED OUT:</strong> ${maskKeywords(currentCase.execution, 2)}`
         },
         {
-          title: "CLUE 4 // WHAT HAPPENED (EASY)",
-          body: `<strong>CASE SUMMARY:</strong> ${maskKeywords(currentCase.fullStory, 1)}`
+          title: "CLUE 4 // DETAILED INCIDENT DESCRIPTION",
+          body: `<strong>INCIDENT DETAILS:</strong> ${maskKeywords(currentCase.detailedStory, 1)}`
         },
         {
-          title: "CLUE 5 // FULL INCIDENT STORY (GIVE-AWAY)",
+          title: "CLUE 5 // FULL CASE NARRATIVE (FINAL CLUE)",
           body: `<strong>FULL CASE STORY:</strong> ${maskCategoryOnly(currentCase.fullStory)}`
         }
       ];
@@ -625,7 +706,6 @@
       document.getElementById('clue-body').innerHTML = clues[attemptCount].body;
     }
 
-    // Mask specific giveaway words without creating messy text
     function maskKeywords(text, level) {
       if (!text) return '';
       let out = text;
@@ -653,7 +733,6 @@
       return out;
     }
 
-    // Hide only words that match the answer category
     function maskCategoryOnly(text) {
       let out = text;
       const targetCat = currentCase.category.toLowerCase();
@@ -675,9 +754,11 @@
       const squares = document.querySelectorAll('.track-square');
 
       if (isCorrect) {
+        guessHistory.push('correct');
         squares[attemptCount].className = 'track-square correct';
         endGame(true);
       } else {
+        guessHistory.push('wrong');
         squares[attemptCount].className = 'track-square wrong';
         attemptCount++;
 
@@ -695,13 +776,16 @@
       document.getElementById('submit-btn').disabled = true;
       document.getElementById('crime-select').disabled = true;
 
+      // Fully reveal mugshot portrait
+      document.getElementById('suspect-img').style.filter = 'blur(0px)';
+
       saveMetrics(won);
 
       const modal = document.getElementById('modal');
       const title = document.getElementById('modal-title');
       const body = document.getElementById('modal-body');
 
-      title.textContent = won ? 'CORRECT CATEGORY!' : 'OUT OF ATTEMPTS';
+      title.textContent = won ? 'CORRECT CATEGORY!' : 'CASE UNRESOLVED';
       title.style.color = won ? 'var(--correct)' : 'var(--wrong)';
 
       body.innerHTML = `
@@ -711,6 +795,27 @@
       `;
 
       setTimeout(() => modal.classList.add('active'), 300);
+    }
+
+    // WORDLE-STYLE SHARE GRID GENERATOR
+    function copyShareResults() {
+      const dayNum = Math.floor((new Date() - new Date('2026-01-01')) / (1000 * 60 * 60 * 24));
+      const scoreStr = guessHistory.includes('correct') ? `${guessHistory.length}/5` : 'X/5';
+
+      let grid = guessHistory.map(res => res === 'correct' ? '🟩' : '🟥').join(' ');
+      while (grid.split(' ').length < 5) {
+        grid += ' ⬛';
+      }
+
+      const shareText = `Wantedle ${currentMode.toUpperCase()} #${dayNum} ${scoreStr}\n${grid}\nhttps://yourdomain.com`;
+
+      navigator.clipboard.writeText(shareText).then(() => {
+        const btn = document.getElementById('share-btn');
+        btn.textContent = '✅ COPIED TO CLIPBOARD!';
+        setTimeout(() => {
+          btn.textContent = '📋 SHARE SCORE GRID';
+        }, 2000);
+      });
     }
 
     function closeModal() {
