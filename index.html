@@ -322,22 +322,70 @@
     let attempts = 0;
     const maxAttempts = 5;
 
-    // Filter out giveaway terms and location spoilers
-    function cleanText(text) {
-      if (!text) return "Details withheld under active file review.";
-      return text
-        .replace(/violent\s*crimes?/gi, "Subject Profile")
-        .replace(/crimes?/gi, "Incident")
-        .replace(/fugitive/gi, "Individual")
-        .replace(/wanted/gi, "Under Review")
-        .replace(/bank\s*robbery/gi, "Financial Inquiry")
-        .replace(/terrorism/gi, "Special Interest")
-        .replace(/kidnapping/gi, "Location Inquiry")
-        .replace(/murder/gi, "Critical Inquiry")
-        .replace(/homicide/gi, "Major Incident")
-        .replace(/deceased\s*individual/gi, "Status Note")
-        .replace(/\b(in|at|near|of)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g, '') // Strips location mentions
+    // Strict allowed categories matching dropdown
+    const VALID_CATEGORIES = [
+      "Cyber Crime", "Counterterrorism", "White-Collar Crime", 
+      "Bank Robbery", "Art Crime", "Organized Crime", 
+      "Human Trafficking", "Violent Crimes", "Counterintelligence", 
+      "Public Corruption", "Civil Rights"
+    ];
+
+    // Maps API subject tags to valid UI options
+    function getNormalizedCategory(rawSubjects) {
+      if (!rawSubjects || !Array.isArray(rawSubjects)) return null;
+      const combined = rawSubjects.join(" ").toLowerCase();
+
+      if (combined.includes("cyber")) return "Cyber Crime";
+      if (combined.includes("terror")) return "Counterterrorism";
+      if (combined.includes("white-collar") || combined.includes("fraud") || combined.includes("financial")) return "White-Collar Crime";
+      if (combined.includes("bank") || combined.includes("robbery")) return "Bank Robbery";
+      if (combined.includes("art")) return "Art Crime";
+      if (combined.includes("organized") || combined.includes("gang") || combined.includes("enterprise")) return "Organized Crime";
+      if (combined.includes("trafficking") || combined.includes("human")) return "Human Trafficking";
+      if (combined.includes("counterintelligence") || combined.includes("espionage")) return "Counterintelligence";
+      if (combined.includes("corruption")) return "Public Corruption";
+      if (combined.includes("civil rights")) return "Civil Rights";
+      if (combined.includes("violent") || combined.includes("murder") || combined.includes("assault")) return "Violent Crimes";
+
+      return null;
+    }
+
+    // Strip out location mentions, physical traits, and direct category giveaways
+    function cleanText(text, isClue5 = false) {
+      if (!text) return "Information restricted under active investigation status.";
+
+      let cleaned = text
+        // Direct category terms
+        .replace(/cyber\s*crime/gi, "unlawful action")
+        .replace(/counterterrorism|terrorism/gi, "classified case")
+        .replace(/white-collar\s*crime|white-collar|fraud|embezzlement|financial/gi, "procedural offense")
+        .replace(/bank\s*robbery|robbery|bank/gi, "unlawful transaction")
+        .replace(/art\s*crime/gi, "specialized inquiry")
+        .replace(/organized\s*crime|gang/gi, "group activity")
+        .replace(/human\s*trafficking|trafficking/gi, "restricted transport")
+        .replace(/violent\s*crimes?|violent|murder|homicide/gi, "major incident")
+        .replace(/counterintelligence|espionage/gi, "sensitive filing")
+        .replace(/public\s*corruption/gi, "administrative conflict")
+        .replace(/civil\s*rights/gi, "statutory inquiry")
+        // General giveaway words
+        .replace(/fugitive|suspect|criminal|wanted|victim|kidnap/gi, "individual")
+        // Physical visual appearance words
+        .replace(/\b(hair|eyes?|skin|height|weight|build|race|complexion|tattoos?|scars?|marks?|tattoos)\b/gi, "attribute")
+        // Geographic locations (Capitalized words following prepositions like 'in', 'near', 'at')
+        .replace(/\b(in|at|near|of|from)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g, 'in undisclosed location')
+        // Strip general state and nation terms
+        .replace(/\b(United States|USA|Mexico|Canada|California|Texas|Florida|New York)\b/gi, 'undisclosed region')
+        .replace(/\s+/g, ' ')
         .trim();
+
+      if (isClue5) {
+        // Keep clue 5 short and non-obvious
+        if (cleaned.length > 140) {
+          cleaned = cleaned.substring(0, 137) + "...";
+        }
+      }
+
+      return cleaned || "Active case file record.";
     }
 
     function loadStats() {
@@ -368,20 +416,26 @@
         const response = await fetch('https://api.fbi.gov/wanted/v1/list?page=1');
         const data = await response.json();
         
-        // Strictly filter ONLY criminal suspects (Excludes Missing Persons, Seeking Info, and Victims)
         allSubjects = data.items.filter(item => {
-          if (!item.images || item.images.length === 0 || !item.title) return false;
-          
+          // Must have valid images
+          if (!item.images || item.images.length === 0 || !item.images[0].original && !item.images[0].large) return false;
+          if (!item.title) return false;
+
+          // Exclude missing persons & non-criminals
           const subjectCats = (item.subjects || []).join(' ').toLowerCase();
           const title = item.title.toLowerCase();
           
-          const isMissingOrVictim = subjectCats.includes('missing') || 
-                                    subjectCats.includes('seeking information') || 
-                                    subjectCats.includes('victim') ||
-                                    title.includes('missing') ||
-                                    title.includes('victim');
+          const isInvalid = subjectCats.includes('missing') || 
+                            subjectCats.includes('seeking information') || 
+                            subjectCats.includes('victim') ||
+                            title.includes('missing') ||
+                            title.includes('victim');
 
-          return !isMissingOrVictim;
+          if (isInvalid) return false;
+
+          // Verify it matches one of our valid playable categories
+          const mappedCategory = getNormalizedCategory(item.subjects);
+          return mappedCategory !== null;
         });
 
         return allSubjects;
@@ -423,16 +477,14 @@
         currentSubject = items[randomIndex];
       }
 
-      // Determine subject category
-      actualCategory = currentSubject.subjects && currentSubject.subjects.length > 0 
-        ? currentSubject.subjects[0] 
-        : "Violent Crimes";
+      // Map to exact dropdown string value
+      actualCategory = getNormalizedCategory(currentSubject.subjects);
 
       setupGameUI();
     }
 
     function setupGameUI() {
-      // Set image
+      // Set mugshot image
       const imgElement = document.getElementById('subject-img');
       imgElement.src = currentSubject.images[0].original || currentSubject.images[0].large;
 
@@ -461,18 +513,19 @@
         // Clue 3: Cleaned Description
         const c3 = document.getElementById('clue-3');
         c3.className = "clue-item unlocked";
-        c3.innerText = `Clue 3 (Profile Summary): ${cleanText(currentSubject.description || 'Subject under active investigation.')}`;
+        c3.innerText = `Clue 3 (Profile Summary): ${cleanText(currentSubject.description)}`;
       } else if (attempts === 3) {
         // Clue 4: Reward Information
         const c4 = document.getElementById('clue-4');
         c4.className = "clue-item unlocked";
-        const reward = currentSubject.reward_text ? cleanText(currentSubject.reward_text) : 'Standard investigation file.';
+        const reward = currentSubject.reward_text ? cleanText(currentSubject.reward_text) : 'Standard investigation file status.';
         c4.innerText = `Clue 4 (Notice): ${reward}`;
       } else if (attempts === 4) {
-        // Clue 5: Case Detail Summary
+        // Clue 5: Concise, non-obvious Case Detail Summary
         const c5 = document.getElementById('clue-5');
         c5.className = "clue-item unlocked";
-        c5.innerText = `Clue 5 (Case Summary): ${cleanText(currentSubject.caution || currentSubject.details || 'Active case record.')}`;
+        const textToUse = currentSubject.caution || currentSubject.details || 'Active status entry.';
+        c5.innerText = `Clue 5 (Brief Case Note): ${cleanText(textToUse, true)}`;
       }
     }
 
