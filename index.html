@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FUGITIVE DOSSIER // CRIME IDENTIFIER</title>
+  <title>FUGITIVE DOSSIER // MASTER CRIME IDENTIFIER</title>
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap');
@@ -12,7 +12,6 @@
       --bg: #05070a;
       --terminal-bg: #0c1017;
       --border: #1e293b;
-      --border-glow: #00f0ff;
       --accent-amber: #ffb703;
       --accent-red: #ff003c;
       --text-bright: #f8fafc;
@@ -225,11 +224,35 @@
       margin-top: 2px;
     }
 
-    /* Input Matrix */
+    /* Input Section */
     .input-section {
       display: flex;
-      gap: 12px;
+      flex-direction: column;
+      gap: 10px;
       margin-bottom: 20px;
+    }
+
+    .search-filter-input {
+      background: #05070a;
+      border: 1px solid var(--border);
+      color: var(--accent-amber);
+      padding: 8px 12px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .search-filter-input::placeholder {
+      color: var(--text-dim);
+    }
+
+    .search-filter-input:focus {
+      border-color: var(--accent-amber);
+    }
+
+    .select-controls {
+      display: flex;
+      gap: 12px;
     }
 
     select {
@@ -241,6 +264,7 @@
       font-family: 'Share Tech Mono', monospace;
       font-size: 0.85rem;
       outline: none;
+      max-height: 200px;
     }
 
     select:focus { border-color: var(--accent-amber); }
@@ -358,6 +382,8 @@
       .dossier-layout { grid-template-columns: 1fr; }
       .photo-frame { margin: 0 auto; }
       .menu-grid { grid-template-columns: 1fr; }
+      .select-controls { flex-direction: column; }
+      .btn-submit { height: 44px; }
     }
   </style>
 </head>
@@ -365,12 +391,12 @@
 
   <header>
     <div class="brand-title">CRIME<span>DEX</span></div>
-    <div class="sys-status">ACTIVE WANTED DATABASE</div>
+    <div class="sys-status">MASTER CATEGORY TERMINAL</div>
   </header>
 
   <div class="console-panel">
     <div class="console-header">
-      <span>SECURE TERMINAL // V4.02</span>
+      <span>SECURE TERMINAL // V4.05</span>
       <span id="header-mode">STANDBY</span>
     </div>
 
@@ -399,7 +425,7 @@
 
       <!-- SCREEN 2: LOADING -->
       <div id="screen-loader" class="screen loader-box">
-        [ SYSTEM ] PARSING ACTIVE FBI WANTED ARCHIVES...
+        [ SYSTEM ] PARSING FBI WANTED ARCHIVES & EXPANDING TAXONOMY...
       </div>
 
       <!-- SCREEN 3: GAMEPLAY -->
@@ -415,10 +441,13 @@
         </div>
 
         <div class="input-section">
-          <select id="crime-select">
-            <option value="">-- SELECT CRIME CATEGORY --</option>
-          </select>
-          <button class="btn-submit" id="submit-btn" onclick="processGuess()">EXECUTE</button>
+          <input type="text" id="category-filter" class="search-filter-input" placeholder="🔍 FILTER CATEGORIES (e.g. Cyber, Robbery, Murders, Fraud)..." oninput="filterDropdownOptions()">
+          <div class="select-controls">
+            <select id="crime-select">
+              <option value="">-- SELECT CRIME CATEGORY --</option>
+            </select>
+            <button class="btn-submit" id="submit-btn" onclick="processGuess()">EXECUTE</button>
+          </div>
         </div>
 
         <div class="attempt-slots" id="slot-tracker">
@@ -452,28 +481,43 @@
   <script>
     const SILHOUETTE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="250" viewBox="0 0 200 250"><rect width="100%" height="100%" fill="%2305070a"/><path d="M100 50 a40 40 0 1 0 0.1 0 Z M50 210 c0-40 25-60 50-60 s50 20 50 60 Z" fill="%231e293b"/></svg>`;
 
-    // Contingency backup pool (strict real living criminals)
-    const CONTINGENCY_DATABASE = [
-      {
-        id: "ruja-ignatova",
-        title: "Ruja Ignatova",
-        thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/ruja-ignatova/@@images/image/thumb&w=200&h=250&fit=cover",
-        subjects: ["White-Collar Crime", "Cyber's Most Wanted"],
-        sex: "Female", hair: "Dark", eyes: "Brown", reward: "$5,000,000", office: "NEW YORK",
-        summary: "Wanted for leadership in a global cryptocurrency fraud scheme (OneCoin)."
-      },
-      {
-        id: "bhadreshkumar-patel",
-        title: "Bhadreshkumar Chetanbhai Patel",
-        thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/bhadreshkumar-chetanbhai-patel/@@images/image/thumb&w=200&h=250&fit=cover",
-        subjects: ["Violent Crime - Murders"],
-        sex: "Male", hair: "Brown", eyes: "Brown", reward: "$250,000", office: "BALTIMORE",
-        summary: "Wanted for violent crime and murder inside a commercial store in Maryland."
-      }
+    // Complete FBI Master Classification Taxonomy
+    const MASTER_CRIME_TAXONOMY = [
+      "Bank Robbers",
+      "Counterintelligence",
+      "Cyber's Most Wanted",
+      "Criminal Enterprise Investigations",
+      "Domestic Terrorism",
+      "Human Trafficking",
+      "Violent Crime - Murders",
+      "White-Collar Crime",
+      "Additional Violent Crimes",
+      "Art Theft",
+      "Carjacking / Auto Theft",
+      "Civil Rights Violations",
+      "Corporate / Securities Fraud",
+      "Counterfeit Goods & Currency",
+      "Drug Trafficking & Narcotics",
+      "Ecological & Environmental Crimes",
+      "Economic Espionage",
+      "Extortion & Racketeering",
+      "Financial Institution Fraud",
+      "Foreign Counterintelligence",
+      "Healthcare Fraud",
+      "Identity Theft",
+      "Immigration / Passport Fraud",
+      "Intellectual Property Theft",
+      "International Terrorism",
+      "Money Laundering",
+      "Organized Crime",
+      "Public Corruption",
+      "Ransomware / Extortion",
+      "Seeking Information - Violent Crimes",
+      "Weapons Offenses & Arms Trafficking"
     ];
 
     let criminalDatabase = [];
-    let activeCategories = new Set();
+    let masterCategories = new Set(MASTER_CRIME_TAXONOMY);
     let currentCase = null;
     let attemptCount = 0;
     const MAX_ATTEMPTS = 5;
@@ -484,7 +528,7 @@
       if (criminalDatabase.length > 0) return;
 
       try {
-        const response = await fetch('https://api.fbi.gov/wanted/v1/list?person_classification=main&pageSize=80');
+        const response = await fetch('https://api.fbi.gov/wanted/v1/list?person_classification=main&pageSize=100');
         if (response.ok) {
           const data = await response.json();
           if (data.items) {
@@ -492,21 +536,40 @@
           }
         }
       } catch (err) {
-        console.warn("FBI API query failed, activating local contingency data.", err);
+        console.warn("FBI API fetch error, utilizing fallback cache.", err);
       }
 
       if (criminalDatabase.length === 0) {
-        criminalDatabase = CONTINGENCY_DATABASE;
+        criminalDatabase = [
+          {
+            id: "ruja-ignatova",
+            title: "Ruja Ignatova",
+            thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/ruja-ignatova/@@images/image/thumb&w=200&h=250&fit=cover",
+            subjects: ["White-Collar Crime", "Cyber's Most Wanted"],
+            sex: "Female", hair: "Dark", eyes: "Brown", reward: "$5,000,000", office: "NEW YORK",
+            summary: "Wanted for leadership in a global cryptocurrency fraud scheme (OneCoin)."
+          },
+          {
+            id: "bhadreshkumar-patel",
+            title: "Bhadreshkumar Chetanbhai Patel",
+            thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/bhadreshkumar-chetanbhai-patel/@@images/image/thumb&w=200&h=250&fit=cover",
+            subjects: ["Violent Crime - Murders"],
+            sex: "Male", hair: "Brown", eyes: "Brown", reward: "$250,000", office: "BALTIMORE",
+            summary: "Wanted for violent crime and murder inside a commercial store in Maryland."
+          }
+        ];
       }
 
-      // Collect only categories present in filtered criminals
-      activeCategories.clear();
-      criminalDatabase.forEach(c => c.subjects.forEach(s => activeCategories.add(s)));
-      populateCategoryDropdown();
+      // Automatically dynamically add any API subjects not in master taxonomy
+      criminalDatabase.forEach(c => {
+        c.subjects.forEach(s => masterCategories.add(s));
+      });
+
+      populateDropdownOptions();
     }
 
     function parseAndFilter(items) {
-      const EXCLUDE_TERMS = ['missing', 'kidnap', 'victim', 'deceased', 'captured', 'located', 'seeking info', 'endangered'];
+      const EXCLUDE_TERMS = ['missing', 'kidnap', 'victim', 'deceased', 'captured', 'located', 'seeking info - missing', 'endangered'];
 
       return items.filter(item => {
         if (!item.title || !item.subjects || item.subjects.length === 0) return false;
@@ -515,7 +578,6 @@
         const lowerDesc = (item.description || '').toLowerCase();
         const lowerCaution = (item.caution || '').toLowerCase();
 
-        // Check if item contains any forbidden keywords (dead, victim, missing)
         const isForbidden = EXCLUDE_TERMS.some(term => 
           lowerSubjects.includes(term) || lowerDesc.includes(term) || lowerCaution.includes(term)
         );
@@ -550,16 +612,27 @@
       });
     }
 
-    function populateCategoryDropdown() {
+    function populateDropdownOptions(filterText = '') {
       const select = document.getElementById('crime-select');
+      const currentValue = select.value;
       select.innerHTML = '<option value="">-- SELECT CRIME CATEGORY --</option>';
-      
-      Array.from(activeCategories).sort().forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.textContent = cat;
-        select.appendChild(opt);
+
+      const sortedCategories = Array.from(masterCategories).sort();
+
+      sortedCategories.forEach(cat => {
+        if (!filterText || cat.toLowerCase().includes(filterText.toLowerCase())) {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          if (cat === currentValue) opt.selected = true;
+          select.appendChild(opt);
+        }
       });
+    }
+
+    function filterDropdownOptions() {
+      const filterText = document.getElementById('category-filter').value;
+      populateDropdownOptions(filterText);
     }
 
     async function launchMode(mode) {
@@ -584,6 +657,8 @@
       document.getElementById('submit-btn').disabled = false;
       document.getElementById('crime-select').disabled = false;
       document.getElementById('crime-select').value = '';
+      document.getElementById('category-filter').value = '';
+      populateDropdownOptions();
 
       document.getElementById('suspect-img').src = currentCase.thumbUrl;
 
@@ -618,7 +693,7 @@
     function redactSensitive(str) {
       if (!str) return '';
       let out = str;
-      activeCategories.forEach(cat => {
+      masterCategories.forEach(cat => {
         cat.split(' ').forEach(w => {
           if (w.length > 3) {
             const reg = new RegExp(w, 'gi');
@@ -635,7 +710,13 @@
       if (!choice) return;
 
       const slots = document.querySelectorAll('.slot');
-      const isCorrect = currentCase.subjects.includes(choice);
+      
+      // Flexible matching against case subjects
+      const choiceNorm = choice.toLowerCase();
+      const isCorrect = currentCase.subjects.some(subj => {
+        const subjNorm = subj.toLowerCase();
+        return subjNorm === choiceNorm || subjNorm.includes(choiceNorm) || choiceNorm.includes(subjNorm);
+      });
 
       if (isCorrect) {
         slots[attemptCount].className = 'slot correct';
