@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WANTEDLE — Guess the FBI Most Wanted Crime</title>
+  
+  <meta name="description" content="A daily and unlimited FBI Most Wanted guessing game. Test your detective skills!">
+  <meta property="og:title" content="WANTEDLE — FBI Fugitive Game">
+  <meta property="og:description" content="Can you guess today's FBI Most Wanted crime category?">
+
   <style>
     :root {
       --bg: #121213;
@@ -25,6 +30,21 @@
 
     .game-container { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 500px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
+    /* Home Screen Styles */
+    .home-card { text-align: center; display: flex; flex-direction: column; gap: 15px; }
+    .mode-btn { background: #2c2c2e; border: 1px solid var(--border); border-radius: 8px; padding: 18px; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s, border-color 0.2s; display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; }
+    .mode-btn:hover { background: #3a3a3c; border-color: var(--accent); }
+    .mode-btn.primary { background: var(--accent); border: none; }
+    .mode-btn.primary:hover { opacity: 0.9; }
+    .mode-desc { font-size: 0.8rem; font-weight: normal; color: rgba(255,255,255,0.7); }
+
+    /* Top Nav in Game */
+    .game-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed var(--border); padding-bottom: 10px; }
+    .nav-btn { background: transparent; border: 1px solid var(--border); color: var(--subtext); padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; cursor: pointer; }
+    .nav-btn:hover { color: white; border-color: white; }
+    .mode-badge { font-size: 0.75rem; text-transform: uppercase; font-weight: bold; background: #2c2c2e; padding: 4px 10px; border-radius: 12px; color: var(--accent); letter-spacing: 0.5px; }
+
+    /* Game UI Styles */
     .image-wrapper { text-align: center; margin-bottom: 15px; position: relative; display: flex; justify-content: center; }
     .image-wrapper img { width: 200px; height: 250px; object-fit: cover; border-radius: 8px; border: 3px solid var(--border); background-color: #242426; }
 
@@ -36,7 +56,7 @@
     .clue-label { font-weight: bold; color: var(--accent); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
 
     .controls { display: flex; flex-direction: column; gap: 10px; }
-    select, button { padding: 12px; font-size: 1rem; border-radius: 6px; border: 1px solid var(--border); background: #2c2c2e; color: white; outline: none; }
+    select, button.btn-submit { padding: 12px; font-size: 1rem; border-radius: 6px; border: 1px solid var(--border); background: #2c2c2e; color: white; outline: none; }
     select:focus { border-color: var(--accent); }
     
     button.btn-submit { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
@@ -55,9 +75,9 @@
 
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     .modal.active { opacity: 1; pointer-events: auto; }
-    .modal-content { background: var(--card-bg); padding: 30px; border-radius: 12px; max-width: 400px; text-align: center; border: 1px solid var(--border); }
-    .modal h2 { margin-bottom: 10px; }
-    .modal p { margin-bottom: 20px; color: var(--subtext); }
+    .modal-content { background: var(--card-bg); padding: 30px; border-radius: 12px; max-width: 400px; text-align: center; border: 1px solid var(--border); width: 100%; display: flex; flex-direction: column; gap: 12px; }
+    .modal h2 { margin-bottom: 5px; }
+    .modal p { color: var(--subtext); font-size: 0.95rem; }
 
     #loader { text-align: center; padding: 40px; color: var(--subtext); }
   </style>
@@ -66,13 +86,40 @@
 
   <header>
     <h1>WANTEDLE</h1>
-    <p class="subtitle">Guess the primary crime category of today's FBI fugitive</p>
+    <p class="subtitle">Guess the primary crime category of FBI fugitives</p>
   </header>
 
   <div class="game-container">
-    <div id="loader">Accessing FBI database...</div>
     
+    <!-- 1. HOME SCREEN -->
+    <div id="home-screen" class="home-card">
+      <button class="mode-btn primary" onclick="startDailyMode()">
+        <span>📅 Play Daily Case</span>
+        <span class="mode-desc">One official FBI case refreshed every midnight UTC</span>
+      </button>
+
+      <button class="mode-btn" onclick="startUnlimitedMode()">
+        <span>♾️ Play Unlimited Mode</span>
+        <span class="mode-desc">Endless random cases. Great for practice!</span>
+      </button>
+
+      <div class="stats-bar">
+        <div><div class="stat-val" id="home-stat-played">0</div><div class="stat-lbl">Daily Played</div></div>
+        <div><div class="stat-val" id="home-stat-wins">0</div><div class="stat-lbl">Daily Wins</div></div>
+        <div><div class="stat-val" id="home-stat-streak">0</div><div class="stat-lbl">Streak</div></div>
+      </div>
+    </div>
+
+    <!-- 2. GAME LOADING SCREEN -->
+    <div id="loader" style="display: none;">Accessing FBI database...</div>
+
+    <!-- 3. MAIN GAME SCREEN -->
     <div id="game-ui" style="display: none;">
+      <div class="game-nav">
+        <button class="nav-btn" onclick="returnToHome()">← Home</button>
+        <div class="mode-badge" id="nav-mode-badge">Daily Case</div>
+      </div>
+
       <div class="image-wrapper">
         <img id="fugitive-img" src="" alt="Fugitive Mugshot" onerror="handleImageError(this)">
       </div>
@@ -96,19 +143,22 @@
         <div class="dot"></div>
       </div>
 
-      <div class="stats-bar">
+      <div class="stats-bar" id="game-stats-bar">
         <div><div class="stat-val" id="stat-played">0</div><div class="stat-lbl">Played</div></div>
         <div><div class="stat-val" id="stat-wins">0</div><div class="stat-lbl">Wins</div></div>
         <div><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
       </div>
     </div>
+
   </div>
 
+  <!-- RESULT MODAL -->
   <div class="modal" id="game-modal">
     <div class="modal-content">
       <h2 id="modal-title">RESULT</h2>
-      <p id="modal-body">Details</p>
-      <button class="btn-submit" onclick="closeModal()">Close</button>
+      <div id="modal-body">Details</div>
+      <button class="btn-submit" id="modal-action-btn" onclick="handleModalAction()">Close</button>
+      <button class="nav-btn" style="width: 100%;" onclick="returnToHome()">Return to Main Menu</button>
     </div>
   </div>
 
@@ -125,7 +175,6 @@
       "Seeking Information"
     ];
 
-    // SVG Silhouette fallback if FBI mugshot links break
     const SILHOUETTE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="250" viewBox="0 0 200 250"><rect width="100%" height="100%" fill="%23242426"/><path d="M100 40 a40 40 0 1 0 0.1 0 Z M50 210 c0-40 20-60 50-60 s50 20 50 60 Z" fill="%233a3a3c"/><text x="50%" y="85%" dominant-baseline="middle" text-anchor="middle" fill="%23a0a0a0" font-family="sans-serif" font-size="12">PHOTO REDACTED</text></svg>`;
 
     const FALLBACK_CASES = [
@@ -148,67 +197,35 @@
         field_offices: ["Baltimore"],
         aliases: ["Bhadresh"],
         description: "Wanted for allegedly stabbing his wife to death inside a donut shop in Hanover, Maryland."
+      },
+      {
+        title: "Alejandro Rosales Castillo",
+        images: [{ original: "https://www.fbi.gov/wanted/topten/alejandro-castillo/@@images/image" }],
+        subjects: ["Violent Crime - Murders"],
+        hair_raw: "Black", eyes_raw: "Brown", sex: "Male",
+        reward_text: "Up to $250,000",
+        field_offices: ["Charlotte"],
+        aliases: ["Alex Castillo"],
+        description: "Wanted for his alleged involvement in the murder of a female co-worker in Charlotte, North Carolina."
       }
     ];
 
+    let fugitivePool = [];
     let fugitive = null;
     let currentAttempt = 0;
     const MAX_ATTEMPTS = 5;
     let userGuessed = false;
+    let activeMode = 'daily'; // 'daily' or 'unlimited'
+
+    // Unlimited Session Counters
+    let unlimitedStats = { played: 0, wins: 0, streak: 0 };
 
     const TODAY_KEY = `wantedle_${new Date().toISOString().slice(0,10)}`;
 
-    async function initGame() {
-      populateDropdown();
-      updateStatsUI();
-
-      // 1.5-second timeout controller so loading never drags
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1500);
-
-      try {
-        // High-speed CORS proxy
-        const proxyUrl = 'https://corsproxy.io/?';
-        const targetUrl = 'https://api.fbi.gov/wanted/v1/list?page=1&pageSize=40';
-        
-        const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        const data = await response.json();
-        
-        const validItems = data.items.filter(item => 
-          item.images && item.images.length > 0 && 
-          item.subjects && item.subjects.length > 0 &&
-          item.title
-        );
-
-        if (validItems.length > 0) {
-          const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
-          const daySeed = parseInt(dateStr, 10);
-          fugitive = validItems[daySeed % validItems.length];
-        } else {
-          throw new Error("No valid data returned");
-        }
-
-      } catch (err) {
-        console.warn("API network call slow or failed. Instant loading local fallback case.", err);
-        const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
-        const daySeed = parseInt(dateStr, 10);
-        fugitive = FALLBACK_CASES[daySeed % FALLBACK_CASES.length];
-      }
-
-      document.getElementById('loader').style.display = 'none';
-      document.getElementById('game-ui').style.display = 'block';
-
-      renderFugitiveCard();
-      checkExistingSession();
-    }
-
     function populateDropdown() {
       const select = document.getElementById('crime-select');
-      CRIME_CATEGORIES.sort().forEach(cat => {
+      select.innerHTML = '<option value="">-- Choose Primary Crime --</option>';
+      CRIME_CATEGORIES.slice().sort().forEach(cat => {
         const opt = document.createElement('option');
         opt.value = cat;
         opt.textContent = cat;
@@ -216,9 +233,102 @@
       });
     }
 
+    async function fetchFugitiveData() {
+      if (fugitivePool.length > 0) return fugitivePool;
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1500);
+
+      try {
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        const targetUrl = 'https://api.fbi.gov/wanted/v1/list?page=1&pageSize=40';
+        
+        const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        const data = await response.json();
+        const validItems = data.items.filter(item => 
+          item.images && item.images.length > 0 && 
+          item.subjects && item.subjects.length > 0 &&
+          item.title
+        );
+
+        if (validItems.length > 0) {
+          fugitivePool = validItems;
+        } else {
+          throw new Error("No items returned");
+        }
+      } catch (err) {
+        console.warn("API call timeout or error. Using fallback database.", err);
+        fugitivePool = FALLBACK_CASES;
+      }
+
+      return fugitivePool;
+    }
+
+    async function startDailyMode() {
+      activeMode = 'daily';
+      showScreen('loader');
+
+      await fetchFugitiveData();
+
+      const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
+      const daySeed = parseInt(dateStr, 10);
+      fugitive = fugitivePool[daySeed % fugitivePool.length];
+
+      document.getElementById('nav-mode-badge').textContent = 'Daily Case';
+      showScreen('game-ui');
+      resetGameUI();
+      renderFugitiveCard();
+      checkExistingDailySession();
+    }
+
+    async function startUnlimitedMode() {
+      activeMode = 'unlimited';
+      showScreen('loader');
+
+      await fetchFugitiveData();
+
+      // Select random fugitive
+      const randomIndex = Math.floor(Math.random() * fugitivePool.length);
+      fugitive = fugitivePool[randomIndex];
+
+      document.getElementById('nav-mode-badge').textContent = 'Unlimited Mode';
+      showScreen('game-ui');
+      resetGameUI();
+      renderFugitiveCard();
+    }
+
+    function resetGameUI() {
+      currentAttempt = 0;
+      userGuessed = false;
+      document.getElementById('submit-btn').disabled = false;
+      document.getElementById('crime-select').disabled = false;
+      document.getElementById('crime-select').value = '';
+
+      const dots = document.querySelectorAll('.dot');
+      dots.forEach((dot, idx) => {
+        dot.className = idx === 0 ? 'dot current' : 'dot';
+      });
+
+      updateStatsUI();
+    }
+
+    function showScreen(screenId) {
+      document.getElementById('home-screen').style.display = 'none';
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('game-ui').style.display = 'none';
+      document.getElementById(screenId).style.display = screenId === 'home-screen' ? 'flex' : 'block';
+    }
+
+    function returnToHome() {
+      closeModal();
+      updateHomeStatsUI();
+      showScreen('home-screen');
+    }
+
     function getProxyImageUrl(rawUrl) {
       if (!rawUrl) return SILHOUETTE_SVG;
-      // Route image through WSrv.nl proxy to bypass fbi.gov hotlink protection
       return `https://images.weserv.nl/?url=${encodeURIComponent(rawUrl)}&w=300&h=380&fit=cover`;
     }
 
@@ -309,7 +419,9 @@
         }
       }
 
-      saveSession(isCorrect);
+      if (activeMode === 'daily') {
+        saveDailySession(isCorrect);
+      }
     }
 
     function endGame(won, isReload = false) {
@@ -317,7 +429,6 @@
       document.getElementById('submit-btn').disabled = true;
       document.getElementById('crime-select').disabled = true;
 
-      // Only update stats if it's a fresh guess, NOT a page refresh
       if (!isReload) {
         updateStats(won);
       }
@@ -325,18 +436,31 @@
       const modal = document.getElementById('game-modal');
       const title = document.getElementById('modal-title');
       const body = document.getElementById('modal-body');
+      const actionBtn = document.getElementById('modal-action-btn');
 
       title.textContent = won ? 'CASE SOLVED!' : 'SUSPECT ESCAPED!';
       title.style.color = won ? 'var(--correct)' : 'var(--wrong)';
       
       body.innerHTML = `
         <strong>Fugitive:</strong> ${fugitive.title}<br>
-        <strong>Actual Crimes:</strong> ${fugitive.subjects.join(', ')}<br><br>
-        Come back tomorrow for a new FBI Most Wanted case!
+        <strong>Actual Crimes:</strong> ${fugitive.subjects.join(', ')}
       `;
+
+      if (activeMode === 'unlimited') {
+        actionBtn.textContent = 'Play Next Case ➔';
+      } else {
+        actionBtn.textContent = 'Close Summary';
+      }
 
       if (!isReload) {
         setTimeout(() => modal.classList.add('active'), 600);
+      }
+    }
+
+    function handleModalAction() {
+      closeModal();
+      if (activeMode === 'unlimited') {
+        startUnlimitedMode();
       }
     }
 
@@ -344,12 +468,12 @@
       document.getElementById('game-modal').classList.remove('active');
     }
 
-    function saveSession(won) {
+    function saveDailySession(won) {
       const sessionData = { attempt: currentAttempt, won: won, completed: true };
       localStorage.setItem(TODAY_KEY, JSON.stringify(sessionData));
     }
 
-    function checkExistingSession() {
+    function checkExistingDailySession() {
       const saved = localStorage.getItem(TODAY_KEY);
       if (saved) {
         const data = JSON.parse(saved);
@@ -364,33 +488,43 @@
           if (data.won && dots[currentAttempt]) {
             dots[currentAttempt].className = 'dot correct';
           }
-          // Pass isReload = true so score count doesn't increment on refresh
           endGame(data.won, true);
         }
       }
     }
 
     function updateStats(won) {
-      let stats = JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 };
-      stats.played++;
-      if (won) {
-        stats.wins++;
-        stats.streak++;
+      if (activeMode === 'daily') {
+        let stats = JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 };
+        stats.played++;
+        if (won) { stats.wins++; stats.streak++; } else { stats.streak = 0; }
+        localStorage.setItem('wantedle_stats', JSON.stringify(stats));
       } else {
-        stats.streak = 0;
+        unlimitedStats.played++;
+        if (won) { unlimitedStats.wins++; unlimitedStats.streak++; } else { unlimitedStats.streak = 0; }
       }
-      localStorage.setItem('wantedle_stats', JSON.stringify(stats));
       updateStatsUI();
     }
 
     function updateStatsUI() {
-      let stats = JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 };
+      let stats = activeMode === 'daily' 
+        ? (JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 })
+        : unlimitedStats;
+
       document.getElementById('stat-played').textContent = stats.played;
       document.getElementById('stat-wins').textContent = stats.wins;
       document.getElementById('stat-streak').textContent = stats.streak;
     }
 
-    initGame();
+    function updateHomeStatsUI() {
+      let stats = JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 };
+      document.getElementById('home-stat-played').textContent = stats.played;
+      document.getElementById('home-stat-wins').textContent = stats.wins;
+      document.getElementById('home-stat-streak').textContent = stats.streak;
+    }
+
+    populateDropdown();
+    updateHomeStatsUI();
   </script>
 </body>
 </html>
