@@ -1,870 +1,294 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- GOOGLE SITE VERIFICATION -->
+  <meta name="google-site-verification" content="letmCdiLn_MqCbGxy1eyQw1y0GfCWAhQ1H4WA7sw4_8" />
 
-  <!-- ========================================== -->
-  <!-- GOOGLE SEO & METADATA                      -->
-  <!-- ========================================== -->
-  <title>Wantedle — Daily Criminal Category Guessing Game</title>
-  <meta name="title" content="Wantedle — Daily Criminal Category Guessing Game">
-  <meta name="description" content="Test your crime-solving skills in Wantedle! Analyze mugshots and progressive evidence clues to guess the correct criminal category in 5 tries. Play daily or unlimited.">
-  <meta name="keywords" content="wantedle, wantedle game, daily wordle games, crime guessing game, fbi wanted game, daily puzzle, mugshot game">
-  <meta name="robots" content="index, follow">
-  <meta name="author" content="Wantedle Game">
-  <link rel="canonical" href="https://yourdomain.com/">
-
-  <!-- Open Graph / Facebook / WhatsApp -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://yourdomain.com/">
-  <meta property="og:title" content="Wantedle — Guess the Criminal Category">
-  <meta property="og:description" content="Can you guess the crime category from the suspect's mugshot and progressive case files?">
-  <meta property="og:image" content="https://yourdomain.com/og-image.png">
-
-  <!-- Twitter Meta Tags -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://yourdomain.com/">
-  <meta name="twitter:title" content="Wantedle — Guess the Criminal Category">
-  <meta name="twitter:description" content="Can you guess the crime category from the suspect's mugshot and progressive case files?">
-  <meta name="twitter:image" content="https://yourdomain.com/og-image.png">
-
-  <!-- Structured Data Schema for Google indexing -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "Wantedle",
-    "operatingSystem": "All",
-    "applicationCategory": "GameApplication",
-    "genre": "Puzzle",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "description": "Daily crime category guessing game based on real case files and progressive mugshot reveals."
-  }
-  </script>
+  <!-- SEO & OPEN GRAPH METADATA -->
+  <title>Wantedle – Daily Criminal Category Guessing Game</title>
+  <meta name="title" content="Wantedle – Daily Criminal Category Guessing Game" />
+  <meta name="description" content="Test your deduction skills in Wantedle! Analyze mugshots and progressive evidence clues to guess the daily case subject." />
+  <meta name="keywords" content="wantedle, wantedle game, daily wordle games, crime guessing game, fbi wanted game, daily puzzle" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Wantedle – Daily Case Guessing Game" />
+  <meta property="og:description" content="Can you identify today's subject using progressive clues and evidence?" />
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-
     :root {
-      --bg: #0d0e12;
-      --card-bg: #16181e;
-      --border: #262933;
-      --text: #f3f4f6;
-      --muted: #8c95a6;
-      --correct: #22c55e;
-      --wrong: #ef4444;
-      --accent: #3b82f6;
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent-color: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --border-color: #334155;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
 
     body {
-      background-color: var(--bg);
-      color: var(--text);
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px 16px;
+      padding: 20px 10px;
     }
 
-    /* Header */
     header {
-      width: 100%;
-      max-width: 520px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 16px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--border);
+      text-align: center;
+      margin-bottom: 20px;
     }
 
-    .brand {
-      font-size: 1.6rem;
-      font-weight: 900;
+    h1 {
+      font-size: 2.2rem;
       letter-spacing: 2px;
+      color: var(--accent-color);
       text-transform: uppercase;
-      color: #fff;
     }
 
-    .brand span { color: var(--accent); }
-
-    .mode-badge {
-      font-size: 0.75rem;
-      font-weight: 700;
-      background: #1e222d;
-      padding: 4px 10px;
-      border-radius: 4px;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
     }
 
-    .app-container {
+    .game-container {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 500px;
       width: 100%;
-      max-width: 520px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
 
-    .screen { display: none; }
-    .screen.active { display: block; }
-
-    /* Home Menu Stack */
-    .menu-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .btn-mode {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
+    .image-box {
+      width: 100%;
+      height: 260px;
+      background-color: #020617;
       border-radius: 8px;
-      padding: 20px;
-      color: #fff;
-      text-align: left;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .btn-mode:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-
-    .btn-mode.primary {
-      background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.05));
-      border-color: var(--accent);
-    }
-
-    .btn-mode-title {
-      font-size: 1.1rem;
-      font-weight: 800;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-mode-desc {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    /* Face Mugshot Framing & Dynamic Blur */
-    .image-stage {
-      width: 200px;
-      height: 200px;
-      margin: 0 auto 16px auto;
-      background: #000;
-      border-radius: 50%;
       overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
       position: relative;
-      border: 3px solid var(--border);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     }
 
-    .image-stage img {
+    .image-box img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      object-position: center 20%;
+      object-fit: contain;
       transition: filter 0.5s ease;
     }
 
-    .stage-overlay {
-      position: absolute;
-      bottom: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(4px);
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 1px;
-      border: 1px solid var(--border);
-    }
-
-    /* Clue Box */
-    .clue-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 18px;
-      margin-bottom: 16px;
-      min-height: 110px;
-    }
-
-    .clue-header {
-      font-size: 0.75rem;
-      font-weight: 800;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 8px;
-    }
-
-    .clue-content {
-      font-size: 0.95rem;
-      color: var(--text);
-      line-height: 1.5;
-    }
-
-    /* Track Progress Squares */
-    .tracker-bar {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-
-    .track-square {
-      height: 10px;
-      background: var(--border);
-      border-radius: 2px;
-      transition: background 0.2s ease;
-    }
-
-    .track-square.wrong { background: var(--wrong); }
-    .track-square.correct { background: var(--correct); }
-    .track-square.active { background: var(--accent); }
-
-    /* Dropdown Selection Bar */
-    .input-wrapper {
-      margin-bottom: 20px;
-    }
-
-    .picker-bar {
-      display: flex;
-      gap: 8px;
-    }
-
-    select {
-      flex: 1;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 14px 16px;
-      color: #fff;
-      font-size: 0.95rem;
-      outline: none;
-      cursor: pointer;
-      appearance: none;
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-    }
-
-    select:focus {
-      border-color: var(--accent);
-    }
-
-    select option {
-      background: #16181e;
-      color: #fff;
-      padding: 10px;
-    }
-
-    .btn-submit {
-      background: var(--accent);
-      border: none;
-      color: #fff;
-      padding: 0 20px;
-      border-radius: 6px;
-      font-weight: 700;
-      cursor: pointer;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-      letter-spacing: 1px;
-    }
-
-    .btn-submit:hover:not(:disabled) { opacity: 0.9; }
-    .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    /* Stats Display */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      padding: 14px;
-      border-radius: 8px;
-      text-align: center;
-    }
-
-    .stat-val { font-size: 1.3rem; font-weight: 800; color: #fff; }
-    .stat-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
-
-    .loader {
-      text-align: center;
-      padding: 60px 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
-    /* Modal & Share Button */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
-      z-index: 100;
-      padding: 20px;
-    }
-
-    .modal-backdrop.active { opacity: 1; pointer-events: auto; }
-
-    .modal-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-    }
-
-    .modal-title { font-size: 1.4rem; font-weight: 900; margin-bottom: 12px; }
-    
-    .modal-body {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      padding: 14px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      margin-bottom: 16px;
-      text-align: left;
-      line-height: 1.5;
-    }
-
-    .modal-actions {
+    .clues-list {
       display: flex;
       flex-direction: column;
       gap: 10px;
+      margin-bottom: 20px;
     }
 
-    .btn-share {
-      background: var(--correct);
-      border: none;
-      color: #fff;
-      height: 44px;
+    .clue-item {
+      background-color: #020617;
+      border: 1px solid var(--border-color);
+      padding: 12px;
       border-radius: 6px;
-      font-weight: 800;
-      cursor: pointer;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-      letter-spacing: 1px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
     }
 
-    .btn-share:hover { opacity: 0.9; }
+    .clue-item.revealed {
+      color: var(--text-main);
+      border-color: var(--accent-color);
+    }
+
+    .input-section {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background-color: #020617;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent-color);
+    }
+
+    button {
+      padding: 12px 20px;
+      border-radius: 6px;
+      border: none;
+      background-color: var(--accent-color);
+      color: #0f172a;
+      font-weight: bold;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .attempts-tracker {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .status-message {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .status-message.success { color: var(--success); }
+    .status-message.error { color: var(--danger); }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="brand">WANTED<span>LE</span></div>
-    <div class="mode-badge" id="mode-badge">DAILY</div>
+    <h1>WANTEDLE</h1>
+    <p class="subtitle">Daily Case Deduction Game</p>
   </header>
 
-  <div class="app-container">
-
-    <!-- HOME SCREEN -->
-    <div id="screen-home" class="screen active">
-      <div class="menu-stack">
-        <button class="btn-mode primary" onclick="launchMode('daily')">
-          <div class="btn-mode-title">🎯 Daily Case</div>
-          <div class="btn-mode-desc">Analyze mugshots and progressive crime narratives to guess today's category.</div>
-        </button>
-
-        <button class="btn-mode" onclick="launchMode('unlimited')">
-          <div class="btn-mode-title">♾️ Unlimited Mode</div>
-          <div class="btn-mode-desc">Play endless case files with dynamic image unblurring.</div>
-        </button>
-      </div>
-
-      <div class="stats-row">
-        <div><div class="stat-val" id="h-played">0</div><div class="stat-lbl">Played</div></div>
-        <div><div class="stat-val" id="h-wins">0</div><div class="stat-lbl">Solved</div></div>
-        <div><div class="stat-val" id="h-streak">0</div><div class="stat-lbl">Streak</div></div>
-      </div>
+  <main class="game-container">
+    <div class="image-box">
+      <img id="subject-img" src="" alt="Case Subject Image" style="filter: blur(20px);" />
     </div>
 
-    <!-- LOADER -->
-    <div id="screen-loader" class="screen loader">
-      Preparing Wantedle Case Files...
+    <div class="clues-list" id="clues-container">
+      <div class="clue-item" id="clue-1">Clue 1: Attempt a guess or reveal...</div>
+      <div class="clue-item" id="clue-2">Clue 2: Locked</div>
+      <div class="clue-item" id="clue-3">Clue 3: Locked</div>
     </div>
 
-    <!-- GAMEPLAY SCREEN -->
-    <div id="screen-game" class="screen">
-
-      <div class="image-stage">
-        <img id="suspect-img" src="" alt="Suspect Mugshot">
-        <div class="stage-overlay" id="attempt-indicator">CLUE 1/5</div>
-      </div>
-
-      <div class="clue-card">
-        <div class="clue-header" id="clue-title">CLUE 1</div>
-        <div class="clue-content" id="clue-body">Reviewing case notes...</div>
-      </div>
-
-      <div class="tracker-bar">
-        <div class="track-square active"></div>
-        <div class="track-square"></div>
-        <div class="track-square"></div>
-        <div class="track-square"></div>
-        <div class="track-square"></div>
-      </div>
-
-      <div class="input-wrapper">
-        <div class="picker-bar">
-          <select id="crime-select">
-            <option value="" disabled selected>Select 1 of 15 categories...</option>
-          </select>
-          <button class="btn-submit" id="submit-btn" onclick="submitGuess()">SUBMIT</button>
-        </div>
-      </div>
-
-      <div class="stats-row">
-        <div><div class="stat-val" id="g-played">0</div><div class="stat-lbl">Played</div></div>
-        <div><div class="stat-val" id="g-wins">0</div><div class="stat-lbl">Wins</div></div>
-        <div><div class="stat-val" id="g-streak">0</div><div class="stat-lbl">Streak</div></div>
-      </div>
-
+    <div class="input-section" id="controls">
+      <input type="text" id="guess-input" placeholder="Enter name or subject..." autocomplete="off" />
+      <button id="submit-btn" onclick="makeGuess()">Guess</button>
     </div>
 
-  </div>
-
-  <!-- RESULT MODAL -->
-  <div class="modal-backdrop" id="modal">
-    <div class="modal-card">
-      <div class="modal-title" id="modal-title">CASE CLOSED</div>
-      <div class="modal-body" id="modal-body"></div>
-      <div class="modal-actions">
-        <button class="btn-share" onclick="copyShareResults()" id="share-btn">
-          📋 SHARE SCORE GRID
-        </button>
-        <button class="btn-submit" style="height: 44px;" onclick="closeModal()">CONTINUE</button>
-      </div>
-    </div>
-  </div>
+    <div class="attempts-tracker" id="attempts">Attempts: 0 / 5</div>
+    <div class="status-message" id="status"></div>
+  </main>
 
   <script>
-    // EXACT 15 CATEGORIES
-    const MASTER_15_CATEGORIES = [
-      "Bank Robbery",
-      "Cyber Crime",
-      "Domestic Terrorism",
-      "Drug Trafficking",
-      "Human Trafficking",
-      "International Terrorism",
-      "Money Laundering",
-      "Murder / Homicide",
-      "Organized Crime",
-      "Public Corruption",
-      "Racketeering & Extortion",
-      "Weapons & Arms Offenses",
-      "White-Collar & Fraud",
-      "Art & Intellectual Theft",
-      "Violent Assault & Crimes"
-    ];
+    let currentSubject = null;
+    let attempts = 0;
+    const maxAttempts = 5;
+    let blurLevels = [20, 15, 10, 5, 2, 0];
 
-    let criminalPool = [];
-    let currentCase = null;
-    let attemptCount = 0;
-    const MAX_ATTEMPTS = 5;
-    let currentMode = 'daily';
-    let unlimitedStats = { played: 0, wins: 0, streak: 0 };
-    let guessHistory = [];
-
-    // PROGRESSIVE UNBLUR LEVELS (Pixels)
-    const BLUR_LEVELS = [22, 14, 8, 3, 0];
-
-    function populateDropdown() {
-      const select = document.getElementById('crime-select');
-      select.innerHTML = '<option value="" disabled selected>Select 1 of 15 categories...</option>';
-      MASTER_15_CATEGORIES.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.textContent = cat;
-        select.appendChild(opt);
-      });
+    // Helper: Strip giveaway terms dynamically
+    function cleanText(text) {
+      if (!text) return "Information withheld for investigation.";
+      return text
+        .replace(/violent\s*crimes?/gi, "Subject Profile")
+        .replace(/crimes?/gi, "Incident")
+        .replace(/fugitive/gi, "Individual")
+        .replace(/wanted/gi, "Under Review")
+        .replace(/bank\s*robbery/gi, "Financial Inquiry")
+        .replace(/terrorism/gi, "Special Interest")
+        .replace(/kidnapping/gi, "Location Review");
     }
 
-    async function loadDatabase() {
-      if (criminalPool.length > 0) return;
-
+    async function initGame() {
       try {
-        const res = await fetch('https://api.fbi.gov/wanted/v1/list?person_classification=main&pageSize=100');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.items) {
-            criminalPool = parseCriminals(data.items);
-          }
+        const response = await fetch('https://api.fbi.gov/wanted/v1/list?page=1');
+        const data = await response.json();
+        
+        // Filter out items without valid title or image
+        const validItems = data.items.filter(item => item.images && item.images.length > 0 && item.title);
+        
+        // Pick daily deterministic item based on date
+        const today = new Date().toISOString().slice(0, 10);
+        let hash = 0;
+        for (let i = 0; i < today.length; i++) {
+          hash = today.charCodeAt(i) + ((hash << 5) - hash);
         }
-      } catch (e) {
-        console.warn("API offline - applying curated fallback database.", e);
-      }
+        const index = Math.abs(hash) % validItems.length;
+        
+        currentSubject = validItems[index];
 
-      if (criminalPool.length === 0) {
-        criminalPool = [
-          {
-            id: "ruja-ignatova",
-            title: "Ruja Ignatova",
-            thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/ruja-ignatova/@@images/image/thumb&w=300&h=300&fit=cover",
-            category: "White-Collar & Fraud",
-            region: "New York Area",
-            bounty: "$5,000,000 Cash Reward Offered",
-            strategy: "Operated an elaborate corporate scheme collecting funds from investors worldwide using fake financial products.",
-            execution: "Promoted fake digital coins, manipulated internal value ledgers, and transferred funds through shell bank accounts.",
-            detailedStory: "Accused of orchestrating a multi-billion dollar financial scheme that defrauded investors across dozens of countries.",
-            fullStory: "Wanted for leading a massive fake cryptocurrency organization that stole over 4 billion dollars before she disappeared."
-          },
-          {
-            id: "bhadreshkumar-patel",
-            title: "Bhadreshkumar Chetanbhai Patel",
-            thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/bhadreshkumar-chetanbhai-patel/@@images/image/thumb&w=300&h=300&fit=cover",
-            category: "Murder / Homicide",
-            region: "Baltimore & Maryland Division",
-            bounty: "$250,000 Cash Reward Offered",
-            strategy: "Engaged in a sudden violent violent encounter with a coworker inside a commercial workplace after hours.",
-            execution: "Used a sharp instrument to inflict lethal injury during a night shift before quickly leaving the facility.",
-            detailedStory: "Attacked and killed a fellow employee inside a shop before escaping on foot into a nearby area.",
-            fullStory: "Wanted for striking and killing his coworker inside a donut shop during a night shift before fleeing law enforcement."
-          }
-        ];
+        // Setup Image
+        const imgElement = document.getElementById('subject-img');
+        imgElement.src = currentSubject.images[0].original || currentSubject.images[0].large;
+        imgElement.style.filter = `blur(${blurLevels[0]}px)`;
+
+        // Setup Initial Neutral Clues
+        document.getElementById('clue-1').innerText = `Field Office: ${currentSubject.field_offices ? currentSubject.field_offices.join(', ') : 'Central Division'}`;
+        document.getElementById('clue-2').innerText = `Profile Note: ${cleanText(currentSubject.description || currentSubject.subjects?.[0])}`;
+        document.getElementById('clue-3').innerText = `Status / Details: ${cleanText(currentSubject.caution || currentSubject.details || 'Active File')}`;
+
+      } catch (err) {
+        console.error("Failed to load subject data", err);
+        document.getElementById('status').innerText = "Failed to load case data. Please refresh.";
       }
     }
 
-    function parseCriminals(items) {
-      const EXCLUDE = ['missing', 'kidnap', 'victim', 'deceased', 'captured', 'located', 'seeking info - missing'];
+    function makeGuess() {
+      const input = document.getElementById('guess-input');
+      const userGuess = input.value.trim().toLowerCase();
+      const status = document.getElementById('status');
 
-      return items.filter(item => {
-        // STRICT MUGSHOT FILTER: Only genuine mugshots/portraits
-        if (!item.images || item.images.length === 0) return false;
-        const img = item.images[0].thumb || item.images[0].large;
-        if (!img || img.includes('silhouette') || img.includes('no_image') || img.includes('default')) return false;
+      if (!userGuess || !currentSubject) return;
 
-        if (!item.title || !item.subjects || item.subjects.length === 0) return false;
-        const subjStr = item.subjects.map(s => s.toLowerCase()).join(' ');
-        const descStr = (item.description || '').toLowerCase();
+      attempts++;
+      document.getElementById('attempts').innerText = `Attempts: ${attempts} / ${maxAttempts}`;
 
-        const isForbidden = EXCLUDE.some(term => subjStr.includes(term) || descStr.includes(term));
-        if (item.status && item.status.toLowerCase() !== 'na' && item.status.toLowerCase() !== 'active') return false;
+      // Progressive Blur Reduction
+      const imgElement = document.getElementById('subject-img');
+      imgElement.style.filter = `blur(${blurLevels[Math.min(attempts, blurLevels.length - 1)]}px)`;
 
-        return !isForbidden;
-      }).map(item => {
-        const rawImg = item.images[0].thumb || item.images[0].large;
-        const fastImg = `https://images.weserv.nl/?url=${encodeURIComponent(rawImg)}&w=300&h=300&fit=cover`;
+      const targetTitle = currentSubject.title.toLowerCase();
 
-        const mappedCategory = mapTo15Categories(item.subjects);
-
-        const region = (item.field_offices && item.field_offices.length > 0)
-          ? item.field_offices[0].charAt(0).toUpperCase() + item.field_offices[0].slice(1) + " Division"
-          : "U.S. Federal Jurisdiction";
-
-        const bounty = (item.reward_text && item.reward_text.length > 8 && !item.reward_text.toLowerCase().includes('unknown'))
-          ? item.reward_text
-          : "Official Federal Cash Reward Offered";
-
-        let text = (item.description || item.caution || item.details || '')
-          .replace(/<[^>]*>?/gm, '').trim();
-
-        if (!text || text.length < 25 || text.toLowerCase().includes('unknown')) {
-          text = `Suspect is actively sought in connection with major federal law violations involving ${mappedCategory}.`;
-        }
-
-        let tactics = (item.remarks || item.warning_message || '')
-          .replace(/<[^>]*>?/gm, '').trim();
-
-        if (!tactics || tactics.length < 15 || tactics.toLowerCase().includes('unknown')) {
-          tactics = `Known to move across jurisdictions, use altered identity papers, and evade authorities.`;
-        }
-
-        return {
-          id: item.uid || item.title,
-          title: item.title,
-          thumbUrl: fastImg,
-          category: mappedCategory,
-          region: region,
-          bounty: bounty,
-          strategy: tactics,
-          execution: `Involved actions and methods directed toward targets associated with ${mappedCategory}.`,
-          detailedStory: text.substring(0, 140) + '...',
-          fullStory: text
-        };
-      });
-    }
-
-    function mapTo15Categories(subjects) {
-      const text = subjects.join(' ').toLowerCase();
-
-      if (text.includes('cyber') || text.includes('computer') || text.includes('ransomware') || text.includes('hacker')) return "Cyber Crime";
-      if (text.includes('bank') || text.includes('robbery') || text.includes('teller')) return "Bank Robbery";
-      if (text.includes('murder') || text.includes('homicide') || text.includes('death') || text.includes('killed')) return "Murder / Homicide";
-      if (text.includes('white-collar') || text.includes('fraud') || text.includes('corporate') || text.includes('financial') || text.includes('sec')) return "White-Collar & Fraud";
-      if (text.includes('drug') || text.includes('narcotics') || text.includes('cocaine') || text.includes('heroin')) return "Drug Trafficking";
-      if (text.includes('human') || text.includes('trafficking') || text.includes('smuggling')) return "Human Trafficking";
-      if (text.includes('domestic terrorism')) return "Domestic Terrorism";
-      if (text.includes('international terrorism') || text.includes('counterintelligence') || text.includes('espionage')) return "International Terrorism";
-      if (text.includes('laundering')) return "Money Laundering";
-      if (text.includes('organized') || text.includes('enterprise') || text.includes('cartel')) return "Organized Crime";
-      if (text.includes('corruption') || text.includes('civil rights') || text.includes('official')) return "Public Corruption";
-      if (text.includes('racketeering') || text.includes('extortion')) return "Racketeering & Extortion";
-      if (text.includes('weapon') || text.includes('arms') || text.includes('firearm')) return "Weapons & Arms Offenses";
-      if (text.includes('art') || text.includes('intellectual') || text.includes('copyright')) return "Art & Intellectual Theft";
-
-      return "Violent Assault & Crimes";
-    }
-
-    async function launchMode(mode) {
-      currentMode = mode;
-      document.getElementById('mode-badge').textContent = mode.toUpperCase();
-      showScreen('screen-loader');
-
-      await loadDatabase();
-      populateDropdown();
-
-      if (mode === 'daily') {
-        const seed = parseInt(new Date().toISOString().slice(0,10).replace(/-/g, ''), 10);
-        currentCase = criminalPool[seed % criminalPool.length];
+      if (targetTitle.includes(userGuess) || userGuess.includes(targetTitle)) {
+        status.className = "status-message success";
+        status.innerText = `Correct! Subject identified: ${currentSubject.title}`;
+        imgElement.style.filter = 'blur(0px)';
+        endGame();
       } else {
-        currentCase = criminalPool[Math.floor(Math.random() * criminalPool.length)];
-      }
-
-      setupGame();
-    }
-
-    function setupGame() {
-      attemptCount = 0;
-      guessHistory = [];
-      document.getElementById('submit-btn').disabled = false;
-      document.getElementById('crime-select').disabled = false;
-      document.getElementById('crime-select').selectedIndex = 0;
-
-      const imgEl = document.getElementById('suspect-img');
-      imgEl.src = currentCase.thumbUrl;
-
-      renderCurrentClue();
-      updateTracker();
-      updateStats();
-      showScreen('screen-game');
-    }
-
-    // PROGRESSIVE CRIME NARRATIVE CLUES
-    function renderCurrentClue() {
-      document.getElementById('attempt-indicator').textContent = `CLUE ${attemptCount + 1}/5`;
-
-      // Apply Progressive Blur to Mugshot
-      const imgEl = document.getElementById('suspect-img');
-      imgEl.style.filter = `blur(${BLUR_LEVELS[attemptCount]}px)`;
-
-      const clues = [
-        {
-          title: "CLUE 1 // REGION & REWARD",
-          body: `<strong>MAIN REGION:</strong> ${currentCase.region}<br><strong>REWARD OFFERED:</strong> ${currentCase.bounty}`
-        },
-        {
-          title: "CLUE 2 // GENERAL CRIME SETUP & STRATEGY",
-          body: `<strong>CRIME SETUP:</strong> ${maskKeywords(currentCase.strategy, 3)}`
-        },
-        {
-          title: "CLUE 3 // TACTICAL EXECUTION & METHODOLOGY",
-          body: `<strong>HOW CRIME WAS CARRIED OUT:</strong> ${maskKeywords(currentCase.execution, 2)}`
-        },
-        {
-          title: "CLUE 4 // DETAILED INCIDENT DESCRIPTION",
-          body: `<strong>INCIDENT DETAILS:</strong> ${maskKeywords(currentCase.detailedStory, 1)}`
-        },
-        {
-          title: "CLUE 5 // FULL CASE NARRATIVE (FINAL CLUE)",
-          body: `<strong>FULL CASE STORY:</strong> ${maskCategoryOnly(currentCase.fullStory)}`
-        }
-      ];
-
-      document.getElementById('clue-title').textContent = clues[attemptCount].title;
-      document.getElementById('clue-body').innerHTML = clues[attemptCount].body;
-    }
-
-    function maskKeywords(text, level) {
-      if (!text) return '';
-      let out = text;
-
-      const primary = [
-        'bank', 'robbery', 'robber', 'cyber', 'computer', 'hacker', 'fraud', 'wire', 'scheme',
-        'murder', 'homicide', 'killed', 'shot', 'drug', 'narcotics', 'cocaine', 'heroin',
-        'terrorism', 'terrorist', 'laundering', 'money', 'racketeering', 'extortion',
-        'weapon', 'firearm', 'guns', 'trafficking', 'bribe', 'corruption', 'stolen', 'art'
-      ];
-
-      primary.forEach(w => {
-        const reg = new RegExp('\\b' + w + '\\b', 'gi');
-        out = out.replace(reg, '████');
-      });
-
-      if (level >= 2) {
-        out = out.replace(/\b(victim|assault|cartel|company|bank|account|financial|investor|stole|weapon)\b/gi, '████');
-      }
-
-      if (level >= 3) {
-        out = out.replace(/\b(police|arrest|fled|obtained|cash|vault|computer)\b/gi, '████');
-      }
-
-      return out;
-    }
-
-    function maskCategoryOnly(text) {
-      let out = text;
-      const targetCat = currentCase.category.toLowerCase();
-      targetCat.split(' ').forEach(w => {
-        if (w.length > 2 && w !== '&' && w !== '/') {
-          const reg = new RegExp('\\b' + w + '\\b', 'gi');
-          out = out.replace(reg, '████');
-        }
-      });
-      return out;
-    }
-
-    function submitGuess() {
-      const select = document.getElementById('crime-select');
-      const guess = select.value;
-      if (!guess) return;
-
-      const isCorrect = guess === currentCase.category;
-      const squares = document.querySelectorAll('.track-square');
-
-      if (isCorrect) {
-        guessHistory.push('correct');
-        squares[attemptCount].className = 'track-square correct';
-        endGame(true);
-      } else {
-        guessHistory.push('wrong');
-        squares[attemptCount].className = 'track-square wrong';
-        attemptCount++;
-
-        if (attemptCount < MAX_ATTEMPTS) {
-          squares[attemptCount].className = 'track-square active';
-          renderCurrentClue();
-          select.selectedIndex = 0;
+        if (attempts >= maxAttempts) {
+          status.className = "status-message error";
+          status.innerText = `Case Unsolved. Subject was: ${currentSubject.title}`;
+          imgElement.style.filter = 'blur(0px)';
+          endGame();
         } else {
-          endGame(false);
+          status.className = "status-message error";
+          status.innerText = "Incorrect. Clues updated & image sharpened!";
         }
       }
+
+      input.value = '';
     }
 
-    function endGame(won) {
+    function endGame() {
+      document.getElementById('guess-input').disabled = true;
       document.getElementById('submit-btn').disabled = true;
-      document.getElementById('crime-select').disabled = true;
-
-      // Fully reveal mugshot portrait
-      document.getElementById('suspect-img').style.filter = 'blur(0px)';
-
-      saveMetrics(won);
-
-      const modal = document.getElementById('modal');
-      const title = document.getElementById('modal-title');
-      const body = document.getElementById('modal-body');
-
-      title.textContent = won ? 'CORRECT CATEGORY!' : 'CASE UNRESOLVED';
-      title.style.color = won ? 'var(--correct)' : 'var(--wrong)';
-
-      body.innerHTML = `
-        <strong>Suspect:</strong> ${currentCase.title}<br>
-        <strong>Correct Category:</strong> ${currentCase.category}<br><br>
-        <em>${currentCase.fullStory}</em>
-      `;
-
-      setTimeout(() => modal.classList.add('active'), 300);
     }
 
-    // WORDLE-STYLE SHARE GRID GENERATOR
-    function copyShareResults() {
-      const dayNum = Math.floor((new Date() - new Date('2026-01-01')) / (1000 * 60 * 60 * 24));
-      const scoreStr = guessHistory.includes('correct') ? `${guessHistory.length}/5` : 'X/5';
-
-      let grid = guessHistory.map(res => res === 'correct' ? '🟩' : '🟥').join(' ');
-      while (grid.split(' ').length < 5) {
-        grid += ' ⬛';
-      }
-
-      const shareText = `Wantedle ${currentMode.toUpperCase()} #${dayNum} ${scoreStr}\n${grid}\nhttps://yourdomain.com`;
-
-      navigator.clipboard.writeText(shareText).then(() => {
-        const btn = document.getElementById('share-btn');
-        btn.textContent = '✅ COPIED TO CLIPBOARD!';
-        setTimeout(() => {
-          btn.textContent = '📋 SHARE SCORE GRID';
-        }, 2000);
-      });
-    }
-
-    function closeModal() {
-      document.getElementById('modal').classList.remove('active');
-      if (currentMode === 'unlimited') {
-        launchMode('unlimited');
-      } else {
-        showScreen('screen-home');
-      }
-    }
-
-    function updateTracker() {
-      const squares = document.querySelectorAll('.track-square');
-      squares.forEach((sq, i) => sq.className = i === 0 ? 'track-square active' : 'track-square');
-    }
-
-    function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    }
-
-    function saveMetrics(won) {
-      if (currentMode === 'daily') {
-        let stats = JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 };
-        stats.played++;
-        if (won) { stats.wins++; stats.streak++; } else { stats.streak = 0; }
-        localStorage.setItem('wantedle_stats', JSON.stringify(stats));
-      } else {
-        unlimitedStats.played++;
-        if (won) { unlimitedStats.wins++; unlimitedStats.streak++; } else { unlimitedStats.streak = 0; }
-      }
-      updateStats();
-    }
-
-    function updateStats() {
-      let stats = currentMode === 'daily'
-        ? (JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 })
-        : unlimitedStats;
-
-      document.getElementById('h-played').textContent = stats.played;
-      document.getElementById('h-wins').textContent = stats.wins;
-      document.getElementById('h-streak').textContent = stats.streak;
-
-      document.getElementById('g-played').textContent = stats.played;
-      document.getElementById('g-wins').textContent = stats.wins;
-      document.getElementById('g-streak').textContent = stats.streak;
-    }
-
-    updateStats();
+    // Launch game on load
+    window.onload = initGame;
   </script>
 </body>
 </html>
