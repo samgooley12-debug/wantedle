@@ -8,8 +8,8 @@
   <meta name="google-site-verification" content="letmCdiLn_MqCbGxy1eyQw1y0GfCWAhQ1H4WA7sw4_8" />
 
   <!-- SEO & OPEN GRAPH METADATA -->
-  <title>Wantedle – Daily Criminal Category Guessing Game</title>
-  <meta name="title" content="Wantedle – Daily Criminal Category Guessing Game" />
+  <title>Wantedle – Daily Case Guessing Game</title>
+  <meta name="title" content="Wantedle – Daily Case Guessing Game" />
   <meta name="description" content="Test your deduction skills in Wantedle! Analyze mugshots and progressive evidence clues to guess the daily case subject." />
   <meta name="keywords" content="wantedle, wantedle game, daily wordle games, crime guessing game, fbi wanted game, daily puzzle" />
   <meta property="og:type" content="website" />
@@ -60,6 +60,21 @@
     .subtitle {
       color: var(--text-muted);
       font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .stats-bar span {
+      color: var(--accent-color);
+      font-weight: bold;
     }
 
     .game-container {
@@ -150,6 +165,11 @@
       opacity: 0.9;
     }
 
+    button:disabled {
+      background-color: var(--border-color);
+      cursor: not-allowed;
+    }
+
     .attempts-tracker {
       text-align: center;
       font-size: 0.85rem;
@@ -164,6 +184,14 @@
 
     .status-message.success { color: var(--success); }
     .status-message.error { color: var(--danger); }
+
+    .share-btn {
+      display: none;
+      width: 100%;
+      margin-top: 15px;
+      background-color: var(--success);
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -171,6 +199,10 @@
   <header>
     <h1>WANTEDLE</h1>
     <p class="subtitle">Daily Case Deduction Game</p>
+    <div class="stats-bar">
+      <div>Streak: <span id="streak-val">0</span></div>
+      <div>Played: <span id="played-val">0</span></div>
+    </div>
   </header>
 
   <main class="game-container">
@@ -191,17 +223,18 @@
 
     <div class="attempts-tracker" id="attempts">Attempts: 0 / 5</div>
     <div class="status-message" id="status"></div>
+    <button id="share-btn" class="share-btn" onclick="shareResult()">Share Score 📋</button>
   </main>
 
   <script>
     let currentSubject = null;
     let attempts = 0;
     const maxAttempts = 5;
-    let blurLevels = [20, 15, 10, 5, 2, 0];
+    const blurLevels = [25, 18, 12, 6, 2, 0];
 
-    // Helper: Strip giveaway terms dynamically
-    function cleanText(text) {
-      if (!text) return "Information withheld for investigation.";
+    // Strip giveaway terms dynamically
+    function sanitizeClueText(text) {
+      if (!text) return "Information withheld for active investigation.";
       return text
         .replace(/violent\s*crimes?/gi, "Subject Profile")
         .replace(/crimes?/gi, "Incident")
@@ -209,10 +242,35 @@
         .replace(/wanted/gi, "Under Review")
         .replace(/bank\s*robbery/gi, "Financial Inquiry")
         .replace(/terrorism/gi, "Special Interest")
-        .replace(/kidnapping/gi, "Location Review");
+        .replace(/kidnapping/gi, "Location Inquiry")
+        .replace(/murder/gi, "Critical Inquiry")
+        .replace(/homicide/gi, "Major Incident");
+    }
+
+    // Load Local Storage Stats
+    function loadStats() {
+      const streak = localStorage.getItem('wantedle_streak') || 0;
+      const played = localStorage.getItem('wantedle_played') || 0;
+      document.getElementById('streak-val').innerText = streak;
+      document.getElementById('played-val').innerText = played;
+    }
+
+    function updateStats(won) {
+      let streak = parseInt(localStorage.getItem('wantedle_streak') || 0);
+      let played = parseInt(localStorage.getItem('wantedle_played') || 0);
+      
+      played++;
+      streak = won ? streak + 1 : 0;
+
+      localStorage.setItem('wantedle_streak', streak);
+      localStorage.setItem('wantedle_played', played);
+      
+      document.getElementById('streak-val').innerText = streak;
+      document.getElementById('played-val').innerText = played;
     }
 
     async function initGame() {
+      loadStats();
       try {
         const response = await fetch('https://api.fbi.gov/wanted/v1/list?page=1');
         const data = await response.json();
@@ -237,8 +295,8 @@
 
         // Setup Initial Neutral Clues
         document.getElementById('clue-1').innerText = `Field Office: ${currentSubject.field_offices ? currentSubject.field_offices.join(', ') : 'Central Division'}`;
-        document.getElementById('clue-2').innerText = `Profile Note: ${cleanText(currentSubject.description || currentSubject.subjects?.[0])}`;
-        document.getElementById('clue-3').innerText = `Status / Details: ${cleanText(currentSubject.caution || currentSubject.details || 'Active File')}`;
+        document.getElementById('clue-2').innerText = `Profile Note: ${sanitizeClueText(currentSubject.description || currentSubject.subjects?.[0])}`;
+        document.getElementById('clue-3').innerText = `Status / Details: ${sanitizeClueText(currentSubject.caution || currentSubject.details || 'Active File')}`;
 
       } catch (err) {
         console.error("Failed to load subject data", err);
@@ -266,12 +324,14 @@
         status.className = "status-message success";
         status.innerText = `Correct! Subject identified: ${currentSubject.title}`;
         imgElement.style.filter = 'blur(0px)';
+        updateStats(true);
         endGame();
       } else {
         if (attempts >= maxAttempts) {
           status.className = "status-message error";
           status.innerText = `Case Unsolved. Subject was: ${currentSubject.title}`;
           imgElement.style.filter = 'blur(0px)';
+          updateStats(false);
           endGame();
         } else {
           status.className = "status-message error";
@@ -285,6 +345,14 @@
     function endGame() {
       document.getElementById('guess-input').disabled = true;
       document.getElementById('submit-btn').disabled = true;
+      document.getElementById('share-btn').style.display = 'block';
+    }
+
+    function shareResult() {
+      const text = `Wantedle Score: ${attempts}/${maxAttempts}\nTry today's case at: ${window.location.href}`;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Result copied to clipboard!");
+      });
     }
 
     // Launch game on load
