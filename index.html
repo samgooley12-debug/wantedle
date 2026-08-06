@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CRIME FRAMED — Clue-Based Offense Identifier</title>
+  <title>WANTEDLE — Guess the Criminal Category</title>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
@@ -31,7 +31,7 @@
       padding: 24px 16px;
     }
 
-    /* Framed Top Bar */
+    /* Header */
     header {
       width: 100%;
       max-width: 520px;
@@ -44,7 +44,7 @@
     }
 
     .brand {
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       font-weight: 900;
       letter-spacing: 2px;
       text-transform: uppercase;
@@ -72,7 +72,7 @@
     .screen { display: none; }
     .screen.active { display: block; }
 
-    /* Home Screen Buttons */
+    /* Home Buttons */
     .menu-stack {
       display: flex;
       flex-direction: column;
@@ -115,37 +115,40 @@
       color: var(--muted);
     }
 
-    /* Mugshot Stage */
+    /* Face-Focused Portrait Stage */
     .image-stage {
-      width: 100%;
-      height: 280px;
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 16px auto;
       background: #000;
-      border-radius: 8px;
+      border-radius: 50%;
       overflow: hidden;
       position: relative;
-      border: 1px solid var(--border);
-      margin-bottom: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border: 3px solid var(--border);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     }
 
     .image-stage img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      object-position: center 20%; /* Zooms directly onto the suspect's face */
     }
 
     .stage-overlay {
       position: absolute;
-      top: 12px;
-      right: 12px;
-      background: rgba(0,0,0,0.75);
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.85);
       backdrop-filter: blur(4px);
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 0.75rem;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.7rem;
       font-weight: 700;
       color: #fff;
       letter-spacing: 1px;
+      border: 1px solid var(--border);
     }
 
     /* Dynamic Clue Card */
@@ -155,6 +158,7 @@
       border-radius: 8px;
       padding: 16px;
       margin-bottom: 16px;
+      min-height: 100px;
     }
 
     .clue-header {
@@ -330,7 +334,7 @@
 <body>
 
   <header>
-    <div class="brand">CRIME<span>FRAMED</span></div>
+    <div class="brand">WANTED<span>LE</span></div>
     <div class="mode-badge" id="mode-badge">DAILY</div>
   </header>
 
@@ -341,12 +345,12 @@
       <div class="menu-stack">
         <button class="btn-mode primary" onclick="launchMode('daily')">
           <div class="btn-mode-title">🎯 Daily Fugitive</div>
-          <div class="btn-mode-desc">Analyze progressive case evidence to identify today's primary offense.</div>
+          <div class="btn-mode-desc">Analyze daily case clues to identify the correct crime category.</div>
         </button>
 
         <button class="btn-mode" onclick="launchMode('unlimited')">
           <div class="btn-mode-title">♾️ Unlimited Mode</div>
-          <div class="btn-mode-desc">Continuous archive stream with randomized criminal profiles.</div>
+          <div class="btn-mode-desc">Play endless randomized criminal dossiers from FBI archives.</div>
         </button>
       </div>
 
@@ -359,7 +363,7 @@
 
     <!-- LOADER -->
     <div id="screen-loader" class="screen loader">
-      Decrypting FBI Case Files & Structuring Evidence...
+      Loading Wantedle Case File...
     </div>
 
     <!-- GAMEPLAY SCREEN -->
@@ -372,7 +376,7 @@
 
       <div class="clue-card">
         <div class="clue-header" id="clue-title">EVIDENCE FILE // CLUE 1</div>
-        <div class="clue-content" id="clue-body">Loading forensic intelligence...</div>
+        <div class="clue-content" id="clue-body">Synthesizing intelligence...</div>
       </div>
 
       <div class="tracker-bar">
@@ -386,7 +390,7 @@
       <div class="input-wrapper">
         <div class="suggestions-menu" id="suggestions"></div>
         <div class="search-bar">
-          <input type="text" id="crime-input" placeholder="Search crime category..." autocomplete="off" oninput="handleSearchInput()">
+          <input type="text" id="crime-input" placeholder="Select 1 of 15 categories..." autocomplete="off" oninput="handleSearchInput()">
           <button class="btn-submit" id="submit-btn" onclick="submitGuess()">SUBMIT</button>
         </div>
       </div>
@@ -411,42 +415,28 @@
   </div>
 
   <script>
-    const SILHOUETTE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="280" viewBox="0 0 300 280"><rect width="100%" height="100%" fill="%2316181e"/><path d="M150 60 a50 50 0 1 0 0.1 0 Z M80 250 c0-50 30-70 70-70 s70 20 70 70 Z" fill="%23262933"/></svg>`;
+    const SILHOUETTE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220"><rect width="100%" height="100%" fill="%2316181e"/><circle cx="110" cy="85" r="45" fill="%23262933"/><path d="M40 210 c0-45 30-60 70-60 s70 15 70 60 Z" fill="%23262933"/></svg>`;
 
-    const MASTER_CATEGORIES = [
-      "Bank Robbers",
-      "Counterintelligence",
-      "Cyber's Most Wanted",
-      "Criminal Enterprise Investigations",
+    // EXACT 15 CATEGORIES
+    const MASTER_15_CATEGORIES = [
+      "Bank Robbery",
+      "Cyber Crime",
       "Domestic Terrorism",
+      "Drug Trafficking",
       "Human Trafficking",
-      "Violent Crime - Murders",
-      "White-Collar Crime",
-      "Additional Violent Crimes",
-      "Art Theft",
-      "Carjacking / Auto Theft",
-      "Civil Rights Violations",
-      "Corporate / Securities Fraud",
-      "Counterfeit Goods & Currency",
-      "Drug Trafficking & Narcotics",
-      "Ecological & Environmental Crimes",
-      "Economic Espionage",
-      "Extortion & Racketeering",
-      "Financial Institution Fraud",
-      "Healthcare Fraud",
-      "Identity Theft",
-      "Immigration / Passport Fraud",
-      "Intellectual Property Theft",
       "International Terrorism",
       "Money Laundering",
+      "Murder / Homicide",
       "Organized Crime",
       "Public Corruption",
-      "Ransomware / Extortion",
-      "Weapons Offenses & Arms Trafficking"
+      "Racketeering & Extortion",
+      "Weapons & Arms Offenses",
+      "White-Collar & Fraud",
+      "Art & Intellectual Theft",
+      "Violent Assault & Crimes"
     ];
 
     let criminalPool = [];
-    let activeCategorySet = new Set(MASTER_CATEGORIES);
     let currentCase = null;
     let attemptCount = 0;
     const MAX_ATTEMPTS = 5;
@@ -465,7 +455,7 @@
           }
         }
       } catch (e) {
-        console.warn("Using fallback case files.", e);
+        console.warn("API fallback applied.", e);
       }
 
       if (criminalPool.length === 0) {
@@ -473,27 +463,25 @@
           {
             id: "ruja-ignatova",
             title: "Ruja Ignatova",
-            thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/ruja-ignatova/@@images/image/thumb&w=300&h=280&fit=cover",
-            subjects: ["White-Collar Crime", "Cyber's Most Wanted"],
+            thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/ruja-ignatova/@@images/image/thumb&w=300&h=300&fit=cover",
+            category: "White-Collar & Fraud",
             bounty: "$5,000,000 USD",
-            tactics: "Cryptocurrency Ponzi scheme, falsified financial logs, offshore shell entities",
-            remarks: "Reported to travel with armed guards and forged passports",
-            summary: "Wanted for leadership in a multi-billion dollar international fraud scheme (OneCoin)."
+            office: "NEW YORK HQ",
+            summary: "Accused of orchestrating a massive global cryptocurrency fraudulent scheme defrauding investors of over four billion dollars worldwide.",
+            tactics: "Multi-level marketing structure, offshore bank transfers, and falsified digital ledger tokens."
           },
           {
             id: "bhadreshkumar-patel",
             title: "Bhadreshkumar Chetanbhai Patel",
-            thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/bhadreshkumar-chetanbhai-patel/@@images/image/thumb&w=300&h=280&fit=cover",
-            subjects: ["Violent Crime - Murders"],
+            thumbUrl: "https://images.weserv.nl/?url=www.fbi.gov/wanted/topten/bhadreshkumar-chetanbhai-patel/@@images/image/thumb&w=300&h=300&fit=cover",
+            category: "Murder / Homicide",
             bounty: "$250,000 USD",
-            tactics: "Edged weapon assault, flight to avoid prosecution",
-            remarks: "Considered armed and extremely dangerous",
-            summary: "Wanted for violent assault and murder inside a commercial establishment in Maryland."
+            office: "BALTIMORE HQ",
+            summary: "Wanted for striking and fatally wounding a victim inside a commercial donut shop facility before fleeing federal custody.",
+            tactics: "Edge weapon assault, active flight to evade state and federal law enforcement prosecution."
           }
         ];
       }
-
-      criminalPool.forEach(c => c.subjects.forEach(s => activeCategorySet.add(s)));
     }
 
     function parseCriminals(items) {
@@ -510,19 +498,49 @@
         return !isForbidden;
       }).map(item => {
         let rawImg = item.images && item.images.length > 0 ? (item.images[0].thumb || item.images[0].large) : null;
-        const fastImg = rawImg ? `https://images.weserv.nl/?url=${encodeURIComponent(rawImg)}&w=300&h=280&fit=cover` : SILHOUETTE_SVG;
+        const fastImg = rawImg ? `https://images.weserv.nl/?url=${encodeURIComponent(rawImg)}&w=300&h=300&fit=cover` : SILHOUETTE_SVG;
+
+        const mappedCategory = mapTo15Categories(item.subjects);
+
+        // Ensure rich text clues without generic fallback blanks
+        const cleanOffice = item.field_offices && item.field_offices.length > 0 ? item.field_offices.join(', ').toUpperCase() : 'FEDERAL HQ';
+        const cleanBounty = item.reward_text && item.reward_text.length > 10 ? item.reward_text : 'Official FBI Bounty Active (Information Reward Guaranteed)';
+        const cleanSummary = (item.description || item.caution || item.details || `Indicted for serious federal violations falling under ${mappedCategory} investigation.`).replace(/<[^>]*>?/gm, '');
+        const cleanTactics = (item.remarks || item.warning_message || `Subject actively evading capture across multiple jurisdiction boundaries related to ${mappedCategory}.`).replace(/<[^>]*>?/gm, '');
 
         return {
           id: item.uid || item.title,
           title: item.title,
           thumbUrl: fastImg,
-          subjects: item.subjects,
-          bounty: item.reward_text || 'No public bounty recorded',
-          tactics: item.caution || item.remarks || 'Tactical profile classified',
-          remarks: item.warning_message || 'Armed / Dangerous Status Active',
-          summary: item.description || 'Restricted federal indictment record.'
+          category: mappedCategory,
+          office: cleanOffice,
+          bounty: cleanBounty,
+          summary: cleanSummary,
+          tactics: cleanTactics
         };
       });
+    }
+
+    // Maps FBI Subjects to 1 of 15 Categories
+    function mapTo15Categories(subjects) {
+      const text = subjects.join(' ').toLowerCase();
+
+      if (text.includes('cyber') || text.includes('computer') || text.includes('ransomware')) return "Cyber Crime";
+      if (text.includes('bank') || text.includes('robbery')) return "Bank Robbery";
+      if (text.includes('murder') || text.includes('homicide') || text.includes('death')) return "Murder / Homicide";
+      if (text.includes('white-collar') || text.includes('fraud') || text.includes('corporate') || text.includes('financial')) return "White-Collar & Fraud";
+      if (text.includes('drug') || text.includes('narcotics')) return "Drug Trafficking";
+      if (text.includes('human') || text.includes('trafficking')) return "Human Trafficking";
+      if (text.includes('domestic terrorism')) return "Domestic Terrorism";
+      if (text.includes('international terrorism') || text.includes('counterintelligence')) return "International Terrorism";
+      if (text.includes('laundering')) return "Money Laundering";
+      if (text.includes('organized') || text.includes('enterprise')) return "Organized Crime";
+      if (text.includes('corruption') || text.includes('civil rights')) return "Public Corruption";
+      if (text.includes('racketeering') || text.includes('extortion')) return "Racketeering & Extortion";
+      if (text.includes('weapon') || text.includes('arms')) return "Weapons & Arms Offenses";
+      if (text.includes('art') || text.includes('intellectual')) return "Art & Intellectual Theft";
+
+      return "Violent Assault & Crimes";
     }
 
     async function launchMode(mode) {
@@ -561,24 +579,24 @@
 
       const clues = [
         {
-          title: "CLUE 01 // OPERATIONAL PROFILE & WARNINGS",
-          body: `<strong>SECURITY STATUS:</strong> ${currentCase.remarks}<br><strong>ACTION PATTERN:</strong> ${redact(currentCase.tactics, 1)}`
+          title: "CLUE 01 // FIELD JURISDICTION & BOUNTY",
+          body: `<strong>INVESTIGATING OFFICE:</strong> ${currentCase.office}<br><strong>REWARD STATUS:</strong> ${redact(currentCase.bounty, 1)}`
         },
         {
-          title: "CLUE 02 // BOUNTY & FINANCIAL IMPLICATIONS",
-          body: `<strong>BOUNTY / REWARD:</strong> ${redact(currentCase.bounty, 1)}<br><strong>TARGET TYPE:</strong> High-impact illegal activity targeting federal or civil systems.`
+          title: "CLUE 02 // TACTICAL BEHAVIOR & REMARKS",
+          body: `<strong>BEHAVIORAL PROFILE:</strong> ${redact(currentCase.tactics, 1)}`
         },
         {
-          title: "CLUE 03 // CASE SUMMARY (PARTIAL REDACTION)",
-          body: `<strong>STATEMENT:</strong> ${redact(currentCase.summary, 2)}`
+          title: "CLUE 03 // OFFENSE BRIEF (HEAVILY REDACTED)",
+          body: `<strong>CASE BRIEF:</strong> ${redact(currentCase.summary, 2)}`
         },
         {
-          title: "CLUE 04 // FORENSIC MODUS OPERANDI",
-          body: `<strong>METHODOLOGY:</strong> ${currentCase.summary.length > 80 ? currentCase.summary.substring(0, 80) + '... [REDACTED DETAILS]' : currentCase.summary}`
+          title: "CLUE 04 // FORENSIC SUMMARY (LIGHT REDACTION)",
+          body: `<strong>SYNOPSIS:</strong> ${redact(currentCase.summary, 1)}`
         },
         {
-          title: "CLUE 05 // UNREDACTED PRESS BRIEF",
-          body: `<strong>FULL SUMMARY:</strong> ${currentCase.summary}`
+          title: "CLUE 05 // FULL CASE EXCERPT",
+          body: `<strong>UNREDACTED SUMMARY:</strong> ${currentCase.summary}`
         }
       ];
 
@@ -587,21 +605,19 @@
     }
 
     function redact(text, intensity = 1) {
-      if (!text) return 'No details available.';
+      if (!text) return 'Detailed forensic notes logged in terminal.';
       let out = text;
 
-      // Mask primary crime category words to prevent immediate spoil
-      activeCategorySet.forEach(cat => {
-        cat.split(' ').forEach(w => {
-          if (w.length > 3) {
-            const reg = new RegExp(w, 'gi');
-            out = out.replace(reg, '████');
-          }
-        });
+      // Redact terms that spoil the exact category
+      const wordsToMask = ['bank', 'robbery', 'cyber', 'fraud', 'murder', 'homicide', 'drug', 'narcotics', 'terrorism', 'laundering', 'racket', 'extortion', 'weapon', 'arms', 'trafficking'];
+
+      wordsToMask.forEach(w => {
+        const reg = new RegExp('\\b' + w + '\\b', 'gi');
+        out = out.replace(reg, '████');
       });
 
       if (intensity > 1) {
-        out = out.replace(/\b(money|stolen|murder|weapon|bank|wire|fraud|cyber|drug|terrorism|victim)\b/gi, '████');
+        out = out.replace(/\b(stolen|money|killed|assault|wire|scheme|gang|victim|gun|firearm)\b/gi, '████');
       }
 
       return out;
@@ -617,7 +633,7 @@
         return;
       }
 
-      const matches = Array.from(activeCategorySet).filter(c => c.toLowerCase().includes(query));
+      const matches = MASTER_15_CATEGORIES.filter(c => c.toLowerCase().includes(query));
 
       if (matches.length > 0) {
         matches.forEach(m => {
@@ -643,12 +659,7 @@
 
       document.getElementById('suggestions').classList.remove('active');
 
-      const guessNorm = guess.toLowerCase();
-      const isCorrect = currentCase.subjects.some(s => {
-        const sNorm = s.toLowerCase();
-        return sNorm === guessNorm || sNorm.includes(guessNorm) || guessNorm.includes(sNorm);
-      });
-
+      const isCorrect = guess.toLowerCase() === currentCase.category.toLowerCase();
       const squares = document.querySelectorAll('.track-square');
 
       if (isCorrect) {
@@ -678,12 +689,12 @@
       const title = document.getElementById('modal-title');
       const body = document.getElementById('modal-body');
 
-      title.textContent = won ? 'IDENTIFICATION SUCCESSFUL' : 'ANALYSIS FAILED';
+      title.textContent = won ? 'IDENTIFICATION SUCCESSFUL' : 'IDENTIFICATION FAILED';
       title.style.color = won ? 'var(--correct)' : 'var(--wrong)';
 
       body.innerHTML = `
-        <strong>Fugitive:</strong> ${currentCase.title}<br>
-        <strong>Primary Category:</strong> ${currentCase.subjects.join(', ')}
+        <strong>Fugitive Name:</strong> ${currentCase.title}<br>
+        <strong>Correct Category:</strong> ${currentCase.category}
       `;
 
       setTimeout(() => modal.classList.add('active'), 300);
@@ -710,10 +721,10 @@
 
     function saveMetrics(won) {
       if (currentMode === 'daily') {
-        let stats = JSON.parse(localStorage.getItem('framed_crime_stats')) || { played: 0, wins: 0, streak: 0 };
+        let stats = JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 };
         stats.played++;
         if (won) { stats.wins++; stats.streak++; } else { stats.streak = 0; }
-        localStorage.setItem('framed_crime_stats', JSON.stringify(stats));
+        localStorage.setItem('wantedle_stats', JSON.stringify(stats));
       } else {
         unlimitedStats.played++;
         if (won) { unlimitedStats.wins++; unlimitedStats.streak++; } else { unlimitedStats.streak = 0; }
@@ -723,7 +734,7 @@
 
     function updateStats() {
       let stats = currentMode === 'daily'
-        ? (JSON.parse(localStorage.getItem('framed_crime_stats')) || { played: 0, wins: 0, streak: 0 })
+        ? (JSON.parse(localStorage.getItem('wantedle_stats')) || { played: 0, wins: 0, streak: 0 })
         : unlimitedStats;
 
       document.getElementById('h-played').textContent = stats.played;
