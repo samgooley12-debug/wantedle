@@ -4,8 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
+  <!-- GOOGLE SITE VERIFICATION -->
+  <meta name="google-site-verification" content="letmCdiLn_MqCbGxy1eyQw1y0GfCWAhQ1H4WA7sw4_8" />
+
+  <!-- SEO & OPEN GRAPH METADATA -->
   <title>Wantedle – Daily Criminal Category Guessing Game</title>
+  <meta name="title" content="Wantedle – Daily Criminal Category Guessing Game" />
   <meta name="description" content="Test your crime-solving skills in Wantedle! Analyze mugshots and progressive evidence clues to guess the daily subject category." />
+  <meta name="keywords" content="wantedle, wantedle game, daily wordle games, crime guessing game, fbi wanted game, daily puzzle" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Wantedle – Daily Case Guessing Game" />
+  <meta property="og:description" content="Can you identify today's subject category using progressive clues and evidence?" />
 
   <style>
     :root {
@@ -69,6 +78,7 @@
       font-weight: bold;
     }
 
+    /* SCREENS SETUP */
     .screen {
       display: none;
       width: 100%;
@@ -81,6 +91,7 @@
       align-items: center;
     }
 
+    /* HOME SCREEN UI */
     .home-card {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -119,6 +130,7 @@
       opacity: 0.95;
     }
 
+    /* GAME UI */
     .game-container {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -128,13 +140,15 @@
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
     }
 
-    .subject-header {
+    .subject-title {
       text-align: center;
-      font-weight: bold;
+      font-size: 1.25rem;
+      font-weight: 800;
       color: var(--accent-color);
-      margin-bottom: 12px;
-      font-size: 1.1rem;
-      min-height: 24px;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      line-height: 1.3;
     }
 
     .image-box {
@@ -272,9 +286,10 @@
   <!-- GAME SCREEN -->
   <div id="game-screen" class="screen">
     <main class="game-container">
-      <div class="subject-header" id="subject-name">Subject ID: #????</div>
+      <div class="subject-title" id="subject-name">Loading Case...</div>
+
       <div class="image-box">
-        <img id="subject-img" src="" alt="Criminal Mugshot" />
+        <img id="subject-img" src="" alt="Subject Mugshot" />
       </div>
 
       <div class="clues-list" id="clues-container">
@@ -341,20 +356,28 @@
       return null;
     }
 
-    // Resolves image links from the API regardless of whether they are relative or absolute
+    // Secure Image Extractor using CORS proxying to guarantee rendering
     function getImageUrl(item) {
       if (!item.images || item.images.length === 0) return null;
-      const img = item.images[0];
-      let url = img.original || img.large || img.caption || img.thumb;
-      if (!url) return null;
       
-      if (url.startsWith('/')) {
-        url = 'https://www.fbi.gov' + url;
+      const imgObj = item.images[0];
+      let rawUrl = imgObj.large || imgObj.original || imgObj.thumb || imgObj.caption;
+      
+      if (!rawUrl) return null;
+
+      // Fix relative paths provided by FBI API
+      if (rawUrl.startsWith('/')) {
+        rawUrl = 'https://www.fbi.gov' + rawUrl;
       }
-      return url;
+
+      // Convert HTTP to HTTPS
+      rawUrl = rawUrl.replace('http://', 'https://');
+
+      // Wrap through images.weserv.nl proxy to bypass FBI image hotlink/CORS restrictions
+      return `https://images.weserv.nl/?url=${encodeURIComponent(rawUrl)}`;
     }
 
-    // Sanitizes text: removes location markers, appearance descriptors, and explicit category answers
+    // Sanitizes clue text: removes location markers, appearance descriptors, and explicit category answers
     function cleanText(text, isClue5 = false) {
       if (!text) return "Details withheld under active investigation protocol.";
 
@@ -411,12 +434,13 @@
     async function fetchSubjects() {
       if (allSubjects.length > 0) return allSubjects;
       try {
-        // Multi-page fetch to get enough filtered candidates with complete photos
+        // Multi-page fetch to assemble a robust list of verified subjects with photos
         const page1 = fetch('https://api.fbi.gov/wanted/v1/list?page=1').then(r => r.json());
         const page2 = fetch('https://api.fbi.gov/wanted/v1/list?page=2').then(r => r.json());
+        const page3 = fetch('https://api.fbi.gov/wanted/v1/list?page=3').then(r => r.json());
         
-        const [data1, data2] = await Promise.all([page1, page2]);
-        const combined = [...(data1.items || []), ...(data2.items || [])];
+        const [d1, d2, d3] = await Promise.all([page1, page2, page3]);
+        const combined = [...(d1.items || []), ...(d2.items || []), ...(d3.items || [])];
         
         allSubjects = combined.filter(item => {
           const imgUrl = getImageUrl(item);
@@ -455,12 +479,11 @@
       document.getElementById('category-select').selectedIndex = 0;
       document.getElementById('submit-btn').disabled = false;
       document.getElementById('status').innerText = '';
-      document.getElementById('subject-name').innerText = "Subject ID: #????";
       document.getElementById('attempts').innerText = `Attempts: 0 / ${maxAttempts}`;
 
       const items = await fetchSubjects();
       if (!items.length) {
-        document.getElementById('status').innerText = "Error loading cases. Please check internet connection.";
+        document.getElementById('status').innerText = "Error loading cases. Please check connection.";
         return;
       }
 
@@ -483,16 +506,19 @@
     }
 
     function setupGameUI() {
-      // Direct load guaranteed mugshot photo
+      // Display criminal's name continuously throughout the round
+      document.getElementById('subject-name').innerText = currentSubject.title;
+
+      // Set photo source through CORS proxy
       const imgElement = document.getElementById('subject-img');
       imgElement.src = getImageUrl(currentSubject);
 
-      // Clue 1: Hair & Eye Color
+      // Clue 1: Physical Characteristics
       const hair = currentSubject.hair || 'Unspecified';
       const eyes = currentSubject.eyes || 'Unspecified';
       document.getElementById('clue-1').innerText = `Clue 1 (Physical Traits): Hair: ${hair} | Eyes: ${eyes}`;
       
-      // Lock clues 2 through 5
+      // Reset & lock clues 2 through 5
       for (let i = 2; i <= 5; i++) {
         const clueEl = document.getElementById(`clue-${i}`);
         clueEl.className = "clue-item";
@@ -561,8 +587,6 @@
     }
 
     function endGame() {
-      // Reveal name/title on finish
-      document.getElementById('subject-name').innerText = `Subject: ${currentSubject.title}`;
       document.getElementById('category-select').disabled = true;
       document.getElementById('submit-btn').disabled = true;
       if (currentMode === 'unlimited') {
